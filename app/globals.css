@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #0B0B0C;
+  --bg-secondary: #151517;
+  --bg-card: #202023;
+  --text-primary: #F4F0E8;
+  --text-secondary: #A7A198;
+  --accent-gold: #C7A46A;
+  --border-charcoal: #302D28;
+  --text-dark: #191919;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: #0B0B0C;
+}
+
+body {
+  background-color: #0B0B0C;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #F4F0E8;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Manrope', 'Inter', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0B0B0C;
+}
+::-webkit-scrollbar-thumb {
+  background: #302D28;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C7A46A;
+}
+
+/* Glass card / Elevated Surface */
+.glass-card {
+  background: rgba(21, 21, 23, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid #302D28;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card:hover {
+  border-color: rgba(199, 164, 106, 0.35);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(199, 164, 106, 0.08);
+}
+
+/* Gold glow text (restrained and subtle) */
+.gold-glow {
+  text-shadow: 0 0 20px rgba(199, 164, 106, 0.2);
+}
+
+/* Subtle gold accent utilities */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #F4F0E8 30%, #C7A46A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
