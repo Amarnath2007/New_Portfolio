@@ -109,3 +109,89 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export async function GET(request: Request) {
+  if (!isAuthorized(request)) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
+
+  try {
+    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    if (!fs.existsSync(uploadsDir)) {
+      return NextResponse.json({ files: [] });
+    }
+
+    const fileNames = fs.readdirSync(uploadsDir);
+    const files = fileNames.map((name) => {
+      const fullPath = path.join(uploadsDir, name);
+      const stat = fs.statSync(fullPath);
+      const ext = path.extname(name).toLowerCase();
+      return {
+        name,
+        url: `/uploads/${name}`,
+        size: stat.size,
+        createdAt: stat.birthtimeMs,
+        type: ext === ".pdf" ? "pdf" : "image",
+      };
+    });
+
+    files.sort((a, b) => b.createdAt - a.createdAt);
+
+    return NextResponse.json({ files });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error?.message || "Failed to list uploads" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  if (!isAuthorized(request)) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
+
+  try {
+    const body = await request.json().catch(() => ({}));
+    const target = body.url || body.fileName;
+
+    if (!target || typeof target !== "string") {
+      return NextResponse.json(
+        { error: "No file URL or fileName provided" },
+        { status: 400 }
+      );
+    }
+
+    const cleanBase = path.basename(target);
+    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    const fullPath = path.join(uploadsDir, cleanBase);
+
+    // Guard against path traversal
+    if (!fullPath.startsWith(uploadsDir)) {
+      return NextResponse.json(
+        { error: "Invalid file path" },
+        { status: 400 }
+      );
+    }
+
+    if (fs.existsSync(fullPath)) {
+      fs.unlinkSync(fullPath);
+      return NextResponse.json({
+        success: true,
+        message: `File ${cleanBase} deleted successfully`,
+        fileName: cleanBase,
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `File was not found on disk, but cleared successfully`,
+      fileName: cleanBase,
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error?.message || "Failed to delete file" },
+      { status: 500 }
+    );
+  }
+}

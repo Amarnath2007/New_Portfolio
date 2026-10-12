@@ -43,6 +43,9 @@ import {
   Layers,
   Award,
   Calendar,
+  FolderArchive,
+  Copy,
+  Check,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -132,8 +135,46 @@ export default function AdminDashboardClient() {
   const [editingCertification, setEditingCertification] = useState<{ item: Certification; isNew: boolean } | null>(null);
   const [editingProject, setEditingProject] = useState<{ item: Project; isNew: boolean } | null>(null);
 
-  // File Upload state
+  // In-App Delete Confirmation Modal State (Reliable replacement for browser confirm dialogs)
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: "certification" | "achievementEntry" | "skillCategory" | "project" | "uploadedFile";
+    id: string;
+    subId?: string;
+    title: string;
+    itemTypeLabel: string;
+    extraInfo?: string;
+  } | null>(null);
+  const [deletingInProgress, setDeletingInProgress] = useState(false);
+
+  // File Upload state & Uploaded Files Management
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<
+    Array<{
+      name: string;
+      url: string;
+      size: number;
+      createdAt: number;
+      type: "pdf" | "image";
+    }>
+  >([]);
+  const [loadingUploads, setLoadingUploads] = useState(false);
+  const [copiedFileUrl, setCopiedFileUrl] = useState<string | null>(null);
+
+  // Fetch uploaded files from disk
+  const fetchUploadedFiles = async () => {
+    try {
+      setLoadingUploads(true);
+      const res = await fetch("/api/admin/upload");
+      if (res.ok) {
+        const json = await res.json();
+        setUploadedFiles(json.files || []);
+      }
+    } catch (e) {
+      console.error("Failed to list uploads", e);
+    } finally {
+      setLoadingUploads(false);
+    }
+  };
 
   // Fetch initial content
   const loadContent = async () => {
@@ -155,6 +196,7 @@ export default function AdminDashboardClient() {
 
   useEffect(() => {
     loadContent();
+    fetchUploadedFiles();
   }, []);
 
   const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
@@ -257,6 +299,7 @@ export default function AdminDashboardClient() {
       }
 
       showToast(`Uploaded ${resJson.fileName} safely`, "success");
+      fetchUploadedFiles();
       return { url: resJson.url, fileName: resJson.fileName };
     } catch (err: any) {
       showToast(err.message || "File upload failed", "error");
@@ -287,13 +330,28 @@ export default function AdminDashboardClient() {
     saveDraft({ ...data, skills: renumbered });
   };
 
+  const requestDeleteSkillCategory = (cat: SkillCategory) => {
+    setDeleteTarget({
+      type: "skillCategory",
+      id: cat.id,
+      title: cat.title,
+      itemTypeLabel: "Skill Category",
+      extraInfo: `This will remove the category "${cat.title}" and its ${cat.skills.length} skills from your draft.`,
+    });
+  };
+
   const deleteSkillCategory = (id: string) => {
-    if (!data) return;
-    if (!confirm("Are you sure you want to delete this entire skill category?")) return;
-    const filtered = data.skills
-      .filter((s) => s.id !== id)
-      .map((cat, i) => ({ ...cat, num: String(i + 1).padStart(2, "0") }));
-    saveDraft({ ...data, skills: filtered });
+    const cat = data?.skills.find((c) => c.id === id);
+    if (cat) {
+      requestDeleteSkillCategory(cat);
+    } else {
+      setDeleteTarget({
+        type: "skillCategory",
+        id,
+        title: "Selected Skill Category",
+        itemTypeLabel: "Skill Category",
+      });
+    }
   };
 
   const saveSkillCategory = (cat: SkillCategory, isNew: boolean) => {
@@ -422,16 +480,31 @@ export default function AdminDashboardClient() {
     showToast(`Achievement entry ${isNew ? "added" : "updated"} successfully!`, "success");
   };
 
-  const deleteCategoryEntry = (categoryKey: string, entryId: string) => {
-    if (!data) return;
-    if (!confirm("Are you sure you want to delete this achievement entry?")) return;
-    const newAchievements = data.achievements.map((cat) => {
-      if (cat.category !== categoryKey && cat.id !== categoryKey) return cat;
-      const currentEntries = Array.isArray(cat.entries) ? cat.entries : [];
-      return { ...cat, entries: currentEntries.filter((e) => e.id !== entryId) };
+  const requestDeleteCategoryEntry = (categoryKey: string, entry: AchievementEntry) => {
+    setDeleteTarget({
+      type: "achievementEntry",
+      id: categoryKey,
+      subId: entry.id,
+      title: entry.title,
+      itemTypeLabel: "Achievement Entry",
+      extraInfo: "This will remove this competition or event entry from your draft.",
     });
-    saveDraft({ ...data, achievements: newAchievements });
-    showToast("Achievement entry deleted.", "info");
+  };
+
+  const deleteCategoryEntry = (categoryKey: string, entryId: string) => {
+    const cat = data?.achievements.find((c) => c.category === categoryKey || c.id === categoryKey);
+    const entry = cat?.entries?.find((e) => e.id === entryId);
+    if (entry) {
+      requestDeleteCategoryEntry(categoryKey, entry);
+    } else {
+      setDeleteTarget({
+        type: "achievementEntry",
+        id: categoryKey,
+        subId: entryId,
+        title: "Selected Entry",
+        itemTypeLabel: "Achievement Entry",
+      });
+    }
   };
 
   const moveCategoryEntry = (categoryKey: string, index: number, direction: "up" | "down") => {
@@ -476,11 +549,28 @@ export default function AdminDashboardClient() {
     setEditingCertification(null);
   };
 
+  const requestDeleteCertification = (cert: Certification) => {
+    setDeleteTarget({
+      type: "certification",
+      id: cert.id,
+      title: cert.title,
+      itemTypeLabel: "Certificate",
+      extraInfo: "This will remove this certificate credential from your portfolio draft.",
+    });
+  };
+
   const deleteCertification = (id: string) => {
-    if (!data) return;
-    if (!confirm("Are you sure you want to delete this certificate?")) return;
-    const filtered = data.certifications.filter((c) => c.id !== id);
-    saveDraft({ ...data, certifications: filtered });
+    const cert = data?.certifications.find((c) => c.id === id);
+    if (cert) {
+      requestDeleteCertification(cert);
+    } else {
+      setDeleteTarget({
+        type: "certification",
+        id,
+        title: "Selected Certificate",
+        itemTypeLabel: "Certificate",
+      });
+    }
   };
 
   const moveCertification = (index: number, direction: "up" | "down") => {
@@ -512,11 +602,28 @@ export default function AdminDashboardClient() {
     setEditingProject(null);
   };
 
+  const requestDeleteProject = (proj: Project) => {
+    setDeleteTarget({
+      type: "project",
+      id: proj.id,
+      title: proj.title,
+      itemTypeLabel: "Project",
+      extraInfo: "This will remove this project card from your portfolio draft.",
+    });
+  };
+
   const deleteProject = (id: string) => {
-    if (!data) return;
-    if (!confirm("Are you sure you want to delete this project?")) return;
-    const filtered = data.projects.filter((p) => p.id !== id);
-    saveDraft({ ...data, projects: filtered });
+    const proj = data?.projects.find((p) => p.id === id);
+    if (proj) {
+      requestDeleteProject(proj);
+    } else {
+      setDeleteTarget({
+        type: "project",
+        id,
+        title: "Selected Project",
+        itemTypeLabel: "Project",
+      });
+    }
   };
 
   const moveProject = (index: number, direction: "up" | "down") => {
@@ -527,6 +634,106 @@ export default function AdminDashboardClient() {
     const [moved] = newItems.splice(index, 1);
     newItems.splice(newIndex, 0, moved);
     saveDraft({ ...data, projects: newItems });
+  };
+
+  const requestDeleteUploadedFile = (fileName: string) => {
+    setDeleteTarget({
+      type: "uploadedFile",
+      id: fileName,
+      title: fileName,
+      itemTypeLabel: "Uploaded File",
+      extraInfo: "This will permanently remove this file from your local disk (/public/uploads).",
+    });
+  };
+
+  // Universal In-App Delete Executor
+  const executeConfirmDelete = async () => {
+    if (!deleteTarget || !data) return;
+    try {
+      setDeletingInProgress(true);
+      const target = deleteTarget;
+
+      if (target.type === "certification") {
+        const certToDelete = data.certifications.find((c) => c.id === target.id);
+        const filtered = data.certifications.filter((c) => c.id !== target.id);
+        await saveDraft({ ...data, certifications: filtered });
+        showToast(`Certificate "${target.title}" deleted from draft.`, "success");
+
+        if (certToDelete?.file_url?.startsWith("/uploads/")) {
+          try {
+            await fetch("/api/admin/upload", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ url: certToDelete.file_url }),
+            });
+            fetchUploadedFiles();
+          } catch (e) {}
+        }
+      } else if (target.type === "achievementEntry") {
+        let entryToDelete: AchievementEntry | undefined;
+        const newAchievements = data.achievements.map((cat) => {
+          if (cat.category !== target.id && cat.id !== target.id) return cat;
+          const currentEntries = Array.isArray(cat.entries) ? cat.entries : [];
+          entryToDelete = currentEntries.find((e) => e.id === target.subId);
+          return { ...cat, entries: currentEntries.filter((e) => e.id !== target.subId) };
+        });
+        await saveDraft({ ...data, achievements: newAchievements });
+        showToast(`Achievement entry "${target.title}" deleted from draft.`, "success");
+
+        if (entryToDelete?.certificate_url?.startsWith("/uploads/")) {
+          try {
+            await fetch("/api/admin/upload", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ url: entryToDelete.certificate_url }),
+            });
+            fetchUploadedFiles();
+          } catch (e) {}
+        }
+      } else if (target.type === "skillCategory") {
+        const filtered = data.skills
+          .filter((s) => s.id !== target.id)
+          .map((cat, i) => ({ ...cat, num: String(i + 1).padStart(2, "0") }));
+        await saveDraft({ ...data, skills: filtered });
+        showToast(`Skill category "${target.title}" deleted from draft.`, "success");
+      } else if (target.type === "project") {
+        const projToDelete = data.projects.find((p) => p.id === target.id);
+        const filtered = data.projects.filter((p) => p.id !== target.id);
+        await saveDraft({ ...data, projects: filtered });
+        showToast(`Project "${target.title}" deleted from draft.`, "success");
+
+        if (projToDelete?.image?.startsWith("/uploads/")) {
+          try {
+            await fetch("/api/admin/upload", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ url: projToDelete.image }),
+            });
+            fetchUploadedFiles();
+          } catch (e) {}
+        }
+      } else if (target.type === "uploadedFile") {
+        try {
+          const res = await fetch("/api/admin/upload", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fileName: target.id }),
+          });
+          const resJson = await res.json();
+          if (res.ok) {
+            showToast(`File "${target.title}" permanently deleted from disk.`, "success");
+            fetchUploadedFiles();
+          } else {
+            showToast(resJson.error || "Failed to delete file", "error");
+          }
+        } catch (e: any) {
+          showToast(e.message || "Failed to delete file", "error");
+        }
+      }
+    } finally {
+      setDeletingInProgress(false);
+      setDeleteTarget(null);
+    }
   };
 
   if (loading || !data) {
@@ -935,7 +1142,7 @@ export default function AdminDashboardClient() {
                               : "bg-[#202023] text-[#A7A198] border-[#302D28]"
                           }`}
                         >
-                          {entryCount} {entryCount === 1 ? "Entry" : "Entries"}
+                          {isSelected ? "Active" : "Category"}
                         </span>
                       </div>
                       <div>
@@ -1351,7 +1558,7 @@ export default function AdminDashboardClient() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => deleteCertification(cert.id)}
+                        onClick={() => requestDeleteCertification(cert)}
                         className="p-1.5 rounded-lg bg-[#202023] text-[#A7A198] hover:text-red-400 border border-[#302D28] transition-colors"
                         title="Delete Certificate"
                       >
@@ -1361,6 +1568,110 @@ export default function AdminDashboardClient() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* ========================================================================= */}
+            {/* LOCAL UPLOADED FILES STORAGE MANAGER */}
+            {/* ========================================================================= */}
+            <div className="mt-12 pt-8 border-t border-[#302D28]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold font-heading text-[#F4F0E8] flex items-center gap-2">
+                    <FolderArchive size={18} className="text-[#C7A46A]" />
+                    Uploaded Files Storage (Local PC: /public/uploads)
+                  </h3>
+                  <p className="text-xs text-[#A7A198] mt-1">
+                    Direct access to physical PDF certificates and images stored on your machine. You can preview, copy URL, or permanently delete files.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={fetchUploadedFiles}
+                  disabled={loadingUploads}
+                  className="px-3 py-1.5 rounded-lg bg-[#202023] hover:bg-[#28282c] border border-[#302D28] text-xs font-semibold text-[#A7A198] hover:text-[#F4F0E8] transition-colors flex items-center gap-1.5 self-start sm:self-auto"
+                >
+                  {loadingUploads ? <Loader2 size={13} className="animate-spin" /> : <RotateCcw size={13} />}
+                  Refresh List
+                </button>
+              </div>
+
+              {uploadedFiles.length === 0 ? (
+                <div className="p-6 rounded-2xl bg-[#151517] border border-[#302D28] text-center text-xs text-[#A7A198]">
+                  <p>No uploaded files currently found in <code className="text-[#C7A46A] font-mono">public/uploads</code>.</p>
+                  <p className="mt-1 text-[11px] opacity-70">When you upload certificate PDFs or images through any form, they will appear here.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {uploadedFiles.map((file) => (
+                    <div
+                      key={file.name}
+                      className="bg-[#151517] border border-[#302D28] rounded-xl p-4 flex flex-col justify-between hover:border-[#C7A46A]/40 transition-colors"
+                    >
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-lg bg-[#202023] border border-[#302D28] text-[#C7A46A] flex items-center justify-center shrink-0">
+                          {file.type === "pdf" ? <FileText size={20} /> : <ImageIcon size={20} />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-[#F4F0E8] truncate" title={file.name}>
+                            {file.name}
+                          </p>
+                          <div className="flex items-center gap-2 text-[11px] text-[#A7A198] mt-0.5">
+                            <span>{(file.size / 1024).toFixed(1)} KB</span>
+                            <span>•</span>
+                            <span>{new Date(file.createdAt).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#302D28]">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setTestCertModal({
+                              title: file.name,
+                              issuer: "Local Uploaded File",
+                              description: `Local storage file located at ${file.url}`,
+                              file_url: file.url,
+                            })
+                          }
+                          className="px-2.5 py-1 rounded-lg bg-[#202023] hover:bg-[#C7A46A]/20 text-[#A7A198] hover:text-[#C7A46A] border border-[#302D28] text-xs font-medium transition-colors flex items-center gap-1"
+                        >
+                          <Eye size={12} />
+                          Preview
+                        </button>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(file.url);
+                              setCopiedFileUrl(file.url);
+                              showToast(`Copied ${file.url} to clipboard!`, "info");
+                              setTimeout(() => setCopiedFileUrl(null), 2500);
+                            }}
+                            className="p-1.5 rounded-lg bg-[#202023] text-[#A7A198] hover:text-[#F4F0E8] border border-[#302D28] transition-colors"
+                            title="Copy File URL"
+                          >
+                            {copiedFileUrl === file.url ? (
+                              <Check size={13} className="text-emerald-400" />
+                            ) : (
+                              <Copy size={13} />
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => requestDeleteUploadedFile(file.name)}
+                            className="p-1.5 rounded-lg bg-[#202023] text-[#A7A198] hover:text-red-400 border border-[#302D28] transition-colors"
+                            title="Delete File from Disk"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -2024,6 +2335,32 @@ export default function AdminDashboardClient() {
                         {uploadingFile ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
                         <span>Or upload file directly from PC</span>
                       </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const input = document.getElementById("entry-cert-url") as HTMLInputElement;
+                          if (input) input.value = "";
+                          const imgInput = document.getElementById("entry-image-url") as HTMLInputElement;
+                          if (imgInput) imgInput.value = "";
+                          setEditingEntry({
+                            ...editingEntry,
+                            entry: {
+                              ...editingEntry.entry,
+                              certificate_url: "",
+                              proof_document: "",
+                              image: "",
+                            },
+                          });
+                          setGdriveVerifyState({ loading: false, accessible: null });
+                          showToast("Attached certificate/proof cleared from this entry.", "info");
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-red-950/20 hover:bg-red-950/40 border border-red-900/40 text-[11px] font-semibold text-red-400 hover:text-red-300 flex items-center gap-1.5 transition-colors"
+                        title="Remove attached certificate or proof"
+                      >
+                        <Trash2 size={12} />
+                        <span>Clear Attached Proof</span>
+                      </button>
                     </div>
 
                     {/* Verification / Preview Box */}
@@ -2375,6 +2712,25 @@ export default function AdminDashboardClient() {
                         {uploadingFile ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
                         <span>Or upload PDF/Image directly from PC</span>
                       </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const input = document.getElementById("cert-file-url") as HTMLInputElement;
+                          if (input) input.value = "";
+                          setEditingCertification({
+                            ...editingCertification,
+                            item: { ...editingCertification.item, file_url: "" },
+                          });
+                          setGdriveVerifyState({ loading: false, accessible: null });
+                          showToast("Attached certificate cleared from this item.", "info");
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-red-950/20 hover:bg-red-950/40 border border-red-900/40 text-[11px] font-semibold text-red-400 hover:text-red-300 flex items-center gap-1.5 transition-colors"
+                        title="Remove attached certificate URL or file"
+                      >
+                        <Trash2 size={12} />
+                        <span>Clear Attached File</span>
+                      </button>
                     </div>
 
                     {/* Verification / Loading */}
@@ -2647,6 +3003,22 @@ export default function AdminDashboardClient() {
                       placeholder="/uploads/... or external URL"
                       className="w-full px-3 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
                     />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = document.getElementById("proj-image-url") as HTMLInputElement;
+                        if (input) input.value = "";
+                        setEditingProject({
+                          ...editingProject,
+                          item: { ...editingProject.item, image: "" },
+                        });
+                        showToast("Project image cleared.", "info");
+                      }}
+                      className="px-2.5 py-2 rounded-xl bg-red-950/20 hover:bg-red-950/40 border border-red-900/40 text-xs font-semibold text-red-400 hover:text-red-300 flex items-center gap-1 shrink-0 transition-colors"
+                      title="Clear image"
+                    >
+                      <Trash2 size={13} />
+                    </button>
                   </div>
                 </div>
 
@@ -2709,6 +3081,73 @@ export default function AdminDashboardClient() {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ========================================================================= */}
+      {/* IN-APP DELETE CONFIRMATION MODAL */}
+      {/* ========================================================================= */}
+      <AnimatePresence>
+        {deleteTarget && (
+          <div
+            className="fixed inset-0 z-[1200] flex items-center justify-center p-4 bg-[#0B0B0C]/90 backdrop-blur-md"
+            onClick={() => !deletingInProgress && setDeleteTarget(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#151517] border border-red-900/40 rounded-2xl p-6 sm:p-7 max-w-md w-full shadow-2xl relative"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-red-950/40 border border-red-800/50 text-red-400 flex items-center justify-center mb-4">
+                <Trash2 size={22} />
+              </div>
+
+              <h3 className="font-heading font-bold text-lg text-[#F4F0E8] mb-1">
+                Delete {deleteTarget.itemTypeLabel}?
+              </h3>
+
+              <p className="text-xs text-[#A7A198] leading-relaxed mb-4">
+                Are you sure you want to delete{" "}
+                <strong className="text-[#F4F0E8] font-semibold bg-[#202023] px-1.5 py-0.5 rounded border border-[#302D28]">
+                  {deleteTarget.title}
+                </strong>
+                ? {deleteTarget.extraInfo || "This item will be removed immediately from your draft portfolio."}
+              </p>
+
+              <div className="p-3 rounded-xl bg-[#202023] border border-[#302D28] text-[11px] text-[#A7A198] flex items-start gap-2 mb-5">
+                <AlertTriangle size={15} className="text-[#C7A46A] shrink-0 mt-0.5" />
+                <span>
+                  This change is saved to your draft. Remember to click <strong>Publish Live</strong> in the Publish tab to update your live website.
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  disabled={deletingInProgress}
+                  onClick={() => setDeleteTarget(null)}
+                  className="w-1/2 py-2.5 rounded-xl bg-[#202023] hover:bg-[#28282c] border border-[#302D28] text-[#A7A198] hover:text-[#F4F0E8] text-xs font-semibold transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={deletingInProgress}
+                  onClick={executeConfirmDelete}
+                  className="w-1/2 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {deletingInProgress ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Trash2 size={14} />
+                  )}
+                  <span>Delete Permanently</span>
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

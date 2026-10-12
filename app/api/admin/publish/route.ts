@@ -57,12 +57,12 @@ export async function POST(request: Request) {
     let deploymentTriggered = false;
 
     try {
-      // Stage only explicit published content and uploaded assets
-      await execAsync('git add "data/portfolio-published.json"');
+      // Stage only explicit published content and uploaded assets (with -A for deletions)
+      await execAsync('git add -A "data/portfolio-published.json"');
 
       const uploadsDir = path.join(process.cwd(), "public", "uploads");
       if (fs.existsSync(uploadsDir)) {
-        await execAsync('git add "public/uploads"');
+        await execAsync('git add -A "public/uploads"');
       }
 
       // Check if there are staged changes

@@ -40,11 +40,11 @@ interface CertificationsProps {
 }
 
 export default function Certifications({ data }: CertificationsProps) {
-  const [certs, setCerts] = useState<any[]>(data && data.length > 0 ? data : initialCerts);
+  const [certs, setCerts] = useState<any[]>(data !== undefined ? data : initialCerts);
   const [selectedCert, setSelectedCert] = useState<CertificateModalData | null>(null);
 
   useEffect(() => {
-    if (data && data.length > 0) {
+    if (data !== undefined) {
       setCerts(data);
       return;
     }

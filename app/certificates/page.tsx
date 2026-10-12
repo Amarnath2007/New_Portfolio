@@ -57,6 +57,21 @@ export default function CertificatesPage() {
   useEffect(() => {
     async function fetchCerts() {
       try {
+        // 1. First check portfolio data API (connected to admin dashboard published / draft data)
+        try {
+          const res = await fetch("/api/portfolio-data");
+          if (res.ok) {
+            const resJson = await res.json();
+            if (resJson.data?.certifications && Array.isArray(resJson.data.certifications)) {
+              setCerts(resJson.data.certifications);
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (apiErr) {
+          console.warn("Portfolio data API not reachable, trying Supabase fallback", apiErr);
+        }
+
         const { data, error } = await supabase
           .from("certificates")
           .select("*")
