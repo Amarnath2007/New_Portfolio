@@ -1,0 +1,292 @@
+{
+  "skills": [
+    {
+      "id": "skill-cat-1",
+      "num": "01",
+      "title": "Programming",
+      "icon": "Code2",
+      "skills": [
+        "C",
+        "C++",
+        "Python",
+        "Java"
+      ]
+    },
+    {
+      "id": "skill-cat-2",
+      "num": "02",
+      "title": "Frontend",
+      "icon": "Layout",
+      "skills": [
+        "HTML",
+        "CSS",
+        "JavaScript",
+        "React",
+        "Next.js",
+        "Tailwind CSS"
+      ]
+    },
+    {
+      "id": "skill-cat-3",
+      "num": "03",
+      "title": "Backend & Database",
+      "icon": "Database",
+      "skills": [
+        "Node.js",
+        "SQL",
+        "Supabase",
+        "File Handling"
+      ]
+    },
+    {
+      "id": "skill-cat-4",
+      "num": "04",
+      "title": "Application Development",
+      "icon": "Smartphone",
+      "skills": [
+        "Flutter",
+        "Kotlin",
+        "Java"
+      ]
+    },
+    {
+      "id": "skill-cat-5",
+      "num": "05",
+      "title": "Core Competencies",
+      "icon": "Brain",
+      "skills": [
+        "Problem Solving",
+        "Data Structures",
+        "AI Tools",
+        "Debugging"
+      ]
+    },
+    {
+      "id": "skill-cat-6",
+      "num": "06",
+      "title": "AI Tools",
+      "icon": "Sparkles",
+      "skills": [
+        "Claude",
+        "ChatGPT",
+        "Codex",
+        "Gamma",
+        "ElevenLabs",
+        "Antigravity",
+        "NotebookLM",
+        "Napkin AI"
+      ]
+    }
+  ],
+  "achievements": [
+    {
+      "id": "ach-1",
+      "title": "Inter-College Wins",
+      "event_name": "Various Institutions",
+      "description": "Successfully competed and secured top positions in symposiums and technical fests held at various reputed colleges.",
+      "position_award": "🏆 5+ Wins",
+      "date": "2024 - 2026",
+      "category": "intercollege",
+      "icon": "Trophy",
+      "image": "",
+      "proof_document": ""
+    },
+    {
+      "id": "ach-2",
+      "title": "College Wins",
+      "event_name": "PSG CAS (Internal)",
+      "description": "Consistent performance in intra-college events, spanning debugging, logic-building, and technical paper presentations.",
+      "position_award": "🏆 5+ Wins",
+      "date": "2024 - 2026",
+      "category": "events",
+      "icon": "Award",
+      "image": "",
+      "proof_document": ""
+    },
+    {
+      "id": "ach-3",
+      "title": "Hackathon Prizes",
+      "event_name": "Innovation & Coding",
+      "description": "Building functional prototypes and solving real-world problems under pressure. Secured multiple podium finishes.",
+      "position_award": "Podium Finishes",
+      "date": "2025 - 2026",
+      "category": "hackathon",
+      "icon": "Zap",
+      "image": "",
+      "proof_document": ""
+    }
+  ],
+  "certifications": [
+    {
+      "id": "cert-1",
+      "title": "HDCA Programming Certificate",
+      "issuer": "CSC (Computer Science Corporation)",
+      "description": "Comprehensive programming certification covering hardware and software fundamentals alongside core coding skills.",
+      "issue_date": "2024",
+      "file_url": "https://ydfjuomyveiwbxejkjvh.supabase.co/storage/v1/object/public/certifications/Hdca.pdf",
+      "original_link": ""
+    },
+    {
+      "id": "cert-2",
+      "title": "Introduction to C",
+      "issuer": "NPTEL",
+      "description": "Officially certified by NPTEL, India's premier e-learning platform backed by IITs and IISc, covering C programming fundamentals.",
+      "issue_date": "2024",
+      "file_url": "https://ydfjuomyveiwbxejkjvh.supabase.co/storage/v1/object/public/certifications/Nptel.pdf",
+      "original_link": ""
+    },
+    {
+      "id": "cert-3",
+      "title": "SEO for WordPress",
+      "issuer": "Udemy",
+      "description": "Completed training on search engine optimization techniques, web content strategy, and WordPress website management.",
+      "issue_date": "2024",
+      "file_url": "https://ydfjuomyveiwbxejkjvh.supabase.co/storage/v1/object/public/certifications/seo-udemy.pdf",
+      "original_link": ""
+    },
+    {
+      "id": "cert-4",
+      "title": "AI Tools Workshop",
+      "issuer": "Be10x",
+      "description": "Successfully completed an intensive workshop on AI tools, focusing on productivity enhancement and advanced generative AI workflows.",
+      "issue_date": "2024",
+      "file_url": "https://ydfjuomyveiwbxejkjvh.supabase.co/storage/v1/object/public/certifications/B10x.pdf",
+      "original_link": ""
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-1",
+      "letter": "T",
+      "title": "Tunic Music",
+      "subtitle": "Mobile App · 2026",
+      "description": "A premium music streaming application featuring a library of 500+ songs with a Spotify-inspired user experience.",
+      "highlights": [
+        "Built with Flutter and Kotlin",
+        "Integrated with Cloudinary for seamless media hosting",
+        "Advanced playback controls and playlist management"
+      ],
+      "tags": [
+        "Flutter",
+        "Kotlin",
+        "Cloudinary"
+      ],
+      "download": "https://ydfjuomyveiwbxejkjvh.supabase.co/storage/v1/object/sign/Apps/Tunic_music_by_Amar.apk?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81N2RmMTE0ZC1iNTk5LTRhN2ItYjk1ZS02ZDJhYjA0NWZiMTIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJBcHBzL1R1bmljX211c2ljX2J5X0FtYXIuYXBrIiwiaWF0IjoxNzc4ODIwNzczLCJleHAiOjE5MzY1MDA3NzN9.BQpxvEi3oVdrAoFjPy-NuKtezOKsABWQRDD8Uzns0ho",
+      "contactSource": true,
+      "topProject": true,
+      "image": "",
+      "github": "",
+      "demo": ""
+    },
+    {
+      "id": "proj-2",
+      "letter": "F",
+      "title": "Flames Game",
+      "subtitle": "Personal · 2025",
+      "description": "A fun interactive logic-based game built to demonstrate creative problem solving and algorithm design.",
+      "highlights": [
+        "Interactive terminal-style interface",
+        "Calculates relationship outcomes with FLAMES formula"
+      ],
+      "tags": [
+        "HTML",
+        "CSS",
+        "JavaScript"
+      ],
+      "contactSource": true,
+      "demo": "https://flames-lilac.vercel.app",
+      "topProject": true,
+      "download": "",
+      "image": "",
+      "github": ""
+    },
+    {
+      "id": "proj-3",
+      "letter": "P",
+      "title": "Personal Portfolio",
+      "subtitle": "Personal · 2026",
+      "description": "A modern, high-performance portfolio website built to showcase my professional journey.",
+      "highlights": [
+        "Built with Next.js and Tailwind CSS",
+        "Features smooth animations and dark mode"
+      ],
+      "tags": [
+        "Next.js",
+        "React",
+        "Tailwind CSS"
+      ],
+      "github": "https://github.com/Amarnath2007/Portfolio",
+      "demo": "https://amar-portfolio-26.vercel.app",
+      "topProject": true,
+      "download": "",
+      "contactSource": false,
+      "image": ""
+    },
+    {
+      "id": "proj-4",
+      "letter": "B",
+      "title": "Banking System",
+      "subtitle": "Personal · 2024",
+      "description": "A robust command-line banking application featuring secure user authentication.",
+      "highlights": [
+        "Balance management and transaction history",
+        "File-based data persistence"
+      ],
+      "tags": [
+        "C",
+        "File Handling",
+        "Algorithms"
+      ],
+      "github": "https://github.com/Amarnath2007/Bank_System-using-C.git",
+      "topProject": false,
+      "download": "",
+      "demo": "",
+      "contactSource": false,
+      "image": ""
+    },
+    {
+      "id": "proj-5",
+      "letter": "B",
+      "title": "Birthday Web Gift",
+      "subtitle": "Personal · 2026",
+      "description": "A personalized web-based gift crafted with AI tools, featuring a heartfelt user experience.",
+      "highlights": [
+        "Smooth animations and confetti effects",
+        "Combines creative vision with technical execution"
+      ],
+      "tags": [
+        "HTML",
+        "CSS",
+        "AI Tools"
+      ],
+      "github": "https://github.com/Amarnath2007/Template_birthday.git",
+      "demo": "https://template-birthday.vercel.app",
+      "topProject": false,
+      "download": "",
+      "contactSource": false,
+      "image": ""
+    },
+    {
+      "id": "proj-6",
+      "letter": "C",
+      "title": "Chatting System",
+      "subtitle": "Personal · 2024",
+      "description": "A real-time chat application allowing multiple users to connect, send and receive messages simultaneously.",
+      "highlights": [
+        "Built in C using TCP socket programming",
+        "Efficient communication handling over a network"
+      ],
+      "tags": [
+        "C",
+        "Networking",
+        "Real-time"
+      ],
+      "github": "https://github.com/Amarnath2007/Chat_System-using-C.git",
+      "topProject": false,
+      "download": "",
+      "demo": "",
+      "contactSource": false,
+      "image": ""
+    }
+  ]
+}
