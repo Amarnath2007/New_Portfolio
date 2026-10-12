@@ -93,18 +93,7 @@
       "icon": "Trophy",
       "image": "",
       "proof_document": "",
-      "entries": [
-        {
-          "id": "entry-1791807821666",
-          "title": "State Level Web Debugging Contest",
-          "event_name": "Government College of Technology",
-          "position_award": "1st Prize",
-          "date": "March 2025",
-          "description": "Secured first place among 45 participating teams in full-stack web debugging challenge.",
-          "certificate_url": "https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/view?usp=sharing",
-          "image": ""
-        }
-      ]
+      "entries": []
     },
     {
       "id": "ach-2",
@@ -143,7 +132,18 @@
       "icon": "Award",
       "image": "",
       "proof_document": "",
-      "entries": []
+      "entries": [
+        {
+          "id": "entry-1791811915444",
+          "title": "Startup Pitching Competition",
+          "event_name": "Lead College of Management, Palakkad",
+          "position_award": "Selected in Top 10 ideas",
+          "date": "9-10th Sept 2026",
+          "description": "What an Idea Sirji! program is a two-day residential entrepreneurship and idea-pitching competition organized by the LEAD Business Incubator (LEAD-BI) at LEAD College of Management in Palakkad, Kerala",
+          "certificate_url": "https://drive.google.com/file/d/1PrjaeFjg5h_F7X6WVIyLSZxei2kRC4vG/view?usp=sharing",
+          "image": ""
+        }
+      ]
     }
   ],
   "certifications": [
@@ -181,15 +181,6 @@
       "description": "Successfully completed an intensive workshop on AI tools, focusing on productivity enhancement and advanced generative AI workflows.",
       "issue_date": "2024",
       "file_url": "https://ydfjuomyveiwbxejkjvh.supabase.co/storage/v1/object/public/certifications/B10x.pdf",
-      "original_link": ""
-    },
-    {
-      "id": "cert-1791808038344",
-      "title": "Advanced React & TypeScript",
-      "issuer": "Coursera",
-      "description": "Completed comprehensive course on advanced React patterns, TypeScript integration, and performance optimization.",
-      "issue_date": "Feb 2025",
-      "file_url": "https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/view?usp=sharing",
       "original_link": ""
     }
   ],
