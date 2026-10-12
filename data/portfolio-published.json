@@ -84,51 +84,66 @@
   "achievements": [
     {
       "id": "ach-1",
+      "category": "intercollege",
       "title": "Inter-College Wins",
       "event_name": "Various Institutions",
       "description": "Successfully competed and secured top positions in symposiums and technical fests held at various reputed colleges.",
       "position_award": "🏆 5+ Wins",
       "date": "2024 - 2026",
-      "category": "intercollege",
       "icon": "Trophy",
       "image": "",
-      "proof_document": ""
+      "proof_document": "",
+      "entries": [
+        {
+          "id": "entry-1791807821666",
+          "title": "State Level Web Debugging Contest",
+          "event_name": "Government College of Technology",
+          "position_award": "1st Prize",
+          "date": "March 2025",
+          "description": "Secured first place among 45 participating teams in full-stack web debugging challenge.",
+          "certificate_url": "https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/view?usp=sharing",
+          "image": ""
+        }
+      ]
     },
     {
       "id": "ach-2",
+      "category": "events",
       "title": "College Wins",
       "event_name": "PSG CAS (Internal)",
       "description": "Consistent performance in intra-college events, spanning debugging, logic-building, and technical paper presentations.",
       "position_award": "🏆 5+ Wins",
       "date": "2024 - 2026",
-      "category": "events",
       "icon": "Award",
       "image": "",
-      "proof_document": ""
+      "proof_document": "",
+      "entries": []
     },
     {
       "id": "ach-3",
+      "category": "hackathon",
       "title": "Hackathon Prizes",
       "event_name": "Innovation & Coding",
       "description": "Building functional prototypes and solving real-world problems under pressure. Secured multiple podium finishes.",
       "position_award": "Podium Finishes",
       "date": "2025 - 2026",
-      "category": "hackathon",
       "icon": "Zap",
       "image": "",
-      "proof_document": ""
+      "proof_document": "",
+      "entries": []
     },
     {
       "id": "ach-4",
+      "category": "participations",
       "title": "Event Participations",
       "event_name": "Inside & Outside College",
       "description": "Active participation across technical symposiums, workshops, coding contests, and conferences spanning multiple institutions.",
       "position_award": "📜 Participations",
       "date": "2024 - 2026",
-      "category": "participations",
       "icon": "Award",
       "image": "",
-      "proof_document": ""
+      "proof_document": "",
+      "entries": []
     }
   ],
   "certifications": [
@@ -166,6 +181,15 @@
       "description": "Successfully completed an intensive workshop on AI tools, focusing on productivity enhancement and advanced generative AI workflows.",
       "issue_date": "2024",
       "file_url": "https://ydfjuomyveiwbxejkjvh.supabase.co/storage/v1/object/public/certifications/B10x.pdf",
+      "original_link": ""
+    },
+    {
+      "id": "cert-1791808038344",
+      "title": "Advanced React & TypeScript",
+      "issuer": "Coursera",
+      "description": "Completed comprehensive course on advanced React patterns, TypeScript integration, and performance optimization.",
+      "issue_date": "Feb 2025",
+      "file_url": "https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/view?usp=sharing",
       "original_link": ""
     }
   ],
