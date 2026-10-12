@@ -88,7 +88,7 @@ export default function Projects() {
   };
 
   return (
-    <section id="projects" className="relative z-10 pt-16 md:pt-20 pb-0 scroll-mt-20 md:scroll-mt-24">
+    <section id="projects" className="relative z-10 pt-16 md:pt-20 pb-0 scroll-mt-24 md:scroll-mt-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
@@ -120,10 +120,10 @@ export default function Projects() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-[#151517] rounded-2xl md:rounded-3xl overflow-hidden group flex-shrink-0 w-[88%] sm:w-[460px] flex flex-col justify-between transition-all duration-300 snap-center sm:snap-start border border-[#302D28] hover:border-[#C7A46A]/40 shadow-xl"
+                className="bg-[#151517] rounded-2xl md:rounded-3xl overflow-hidden group flex-shrink-0 w-[88%] xs:w-[84%] sm:w-[460px] flex flex-col justify-between transition-all duration-300 snap-center sm:snap-start border border-[#302D28] hover:border-[#C7A46A]/40 shadow-xl"
               >
                 {/* Thumbnail / Header */}
-                <div className="h-44 sm:h-40 bg-gradient-to-br from-[#202023] via-[#18181A] to-[#151517] flex items-center justify-center relative overflow-hidden shrink-0 border-b border-[#302D28]">
+                <div className="h-40 sm:h-44 bg-gradient-to-br from-[#202023] via-[#18181A] to-[#151517] flex items-center justify-center relative overflow-hidden shrink-0 border-b border-[#302D28]">
                   <div className="absolute inset-0 bg-radial from-[#C7A46A]/10 to-transparent opacity-40" />
                   <span className="text-7xl sm:text-6xl font-extrabold relative z-10 select-none font-heading text-[#C7A46A]/80 tracking-tight">
                     {p.letter}
@@ -131,15 +131,20 @@ export default function Projects() {
                 </div>
 
                 {/* Content */}
-                <div className="p-6 sm:p-7 relative flex flex-col flex-grow justify-between">
+                <div className="p-5 sm:p-7 relative flex flex-col flex-grow justify-between">
                   <div>
-                    {p.topProject && (
-                      <div className="absolute top-4 right-4 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase flex items-center justify-center border border-[#C7A46A]/40 bg-[#C7A46A]/15 text-[#C7A46A]">
-                        Top Project
-                      </div>
-                    )}
-                    <h3 className="text-[#F4F0E8] font-bold text-lg sm:text-xl mb-1 font-heading">{p.title}</h3>
-                    <p className="text-xs sm:text-sm mb-2.5 font-semibold text-[#C7A46A]">
+                    {/* Top title and badge row */}
+                    <div className="flex items-start justify-between gap-3 mb-1">
+                      <h3 className="text-[#F4F0E8] font-bold text-lg sm:text-xl font-heading leading-snug">
+                        {p.title}
+                      </h3>
+                      {p.topProject && (
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase border border-[#C7A46A]/40 bg-[#C7A46A]/15 text-[#C7A46A] shrink-0">
+                          Top Project
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs sm:text-sm mb-3 font-semibold text-[#C7A46A]">
                       {p.subtitle}
                     </p>
                     <p className="text-[#A7A198] text-xs sm:text-sm leading-relaxed mb-5">

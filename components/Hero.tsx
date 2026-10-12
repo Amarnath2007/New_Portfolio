@@ -33,13 +33,13 @@ export default function Hero() {
   return (
     <section
       id="home"
-      className="relative min-h-[85vh] lg:min-h-screen flex items-center z-10 pt-24 pb-20 lg:py-0 overflow-hidden"
+      className="relative min-h-[85vh] lg:min-h-screen flex items-center z-10 pt-20 sm:pt-24 pb-16 lg:py-0 overflow-hidden"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full translate-y-10">
-        <div className="flex flex-col-reverse lg:grid lg:grid-cols-12 items-center gap-10 lg:gap-6 py-6 min-h-fit lg:min-h-[calc(100vh-80px)]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full translate-y-0 lg:translate-y-8">
+        <div className="flex flex-col-reverse lg:grid lg:grid-cols-12 items-center gap-8 lg:gap-6 py-6 min-h-fit lg:min-h-[calc(100vh-80px)]">
 
           {/* Left Content (7 columns on desktop) */}
-          <div className="lg:col-span-7 flex flex-col gap-5 text-center lg:text-left w-full">
+          <div className="lg:col-span-7 flex flex-col gap-5 text-center lg:text-left w-full min-w-0">
             {/* Status Badge */}
             <motion.div
               initial={{ opacity: 0, y: 15 }}
@@ -57,7 +57,7 @@ export default function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <h1 className="text-4xl sm:text-5xl lg:text-[4rem] font-extrabold tracking-tight font-heading leading-[1.05]">
+              <h1 className="text-3xl xs:text-4xl sm:text-5xl lg:text-[4rem] font-extrabold tracking-tight font-heading leading-[1.08] break-words">
                 <span className="text-[#F4F0E8]">Amarnath </span>
                 <span className="text-[#C7A46A] gold-glow">B</span>
               </h1>
@@ -168,7 +168,7 @@ export default function Hero() {
 
             {/* Naturally blended portrait — zoomed out to show full upper body, shoulders, and suit */}
             <div
-              className="relative w-[280px] sm:w-[330px] lg:w-[390px] xl:w-[420px] aspect-[2/3]"
+              className="relative w-[240px] xs:w-[270px] sm:w-[330px] lg:w-[390px] xl:w-[420px] aspect-[2/3]"
               style={{
                 maskImage:
                   'linear-gradient(to bottom, black 0%, black 56%, rgba(0,0,0,0.85) 68%, rgba(0,0,0,0.35) 78%, transparent 88%)',
@@ -186,7 +186,7 @@ export default function Hero() {
             </div>
 
             {/* Minimal "Developer" label */}
-            <div className="absolute top-16 sm:top-20 lg:top-24 right-[6%] sm:right-[4%] lg:right-[2%] px-3 py-1 rounded-full bg-[#151517]/80 backdrop-blur-md border border-[#302D28]/60 text-[10px] uppercase tracking-widest text-[#C7A46A] font-semibold shadow-md">
+            <div className="absolute top-12 xs:top-16 sm:top-20 lg:top-24 right-[4%] sm:right-[4%] lg:right-[2%] px-3 py-1 rounded-full bg-[#151517]/85 backdrop-blur-md border border-[#302D28]/70 text-[10px] uppercase tracking-widest text-[#C7A46A] font-semibold shadow-md">
               Developer
             </div>
           </motion.div>

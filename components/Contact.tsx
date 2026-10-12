@@ -196,7 +196,7 @@ export default function Contact() {
             className="lg:col-span-5 flex flex-col gap-6"
           >
             {/* Card 1: Let's Connect */}
-            <div className="bg-[#151517] rounded-3xl p-6 sm:p-8 border border-[#302D28] shadow-2xl relative overflow-hidden">
+            <div className="bg-[#151517] rounded-3xl p-5 sm:p-8 border border-[#302D28] shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#C7A46A]/[0.08] to-transparent rounded-bl-full pointer-events-none" />
 
               <div className="flex items-center gap-2 text-[#C7A46A] text-xs font-semibold tracking-wider uppercase mb-2 font-heading">
@@ -320,7 +320,7 @@ export default function Contact() {
             viewport={{ once: true }}
             className="lg:col-span-7"
           >
-            <div className="bg-[#151517] rounded-3xl p-6 sm:p-8 lg:p-10 border border-[#302D28] shadow-2xl relative overflow-hidden">
+            <div className="bg-[#151517] rounded-3xl p-5 sm:p-8 lg:p-10 border border-[#302D28] shadow-2xl relative overflow-hidden">
               <AnimatePresence mode="wait">
                 {submitStatus === "success" ? (
                   /* Success State */

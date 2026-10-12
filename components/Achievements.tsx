@@ -40,7 +40,7 @@ export default function Achievements() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   return (
-    <section id="achievements" className="relative z-10 pt-16 md:pt-20 pb-0 scroll-mt-20 md:scroll-mt-24">
+    <section id="achievements" className="relative z-10 pt-16 md:pt-20 pb-0 scroll-mt-24 md:scroll-mt-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Container */}
         <motion.div
@@ -69,32 +69,39 @@ export default function Achievements() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-[#151517] relative rounded-2xl md:rounded-3xl p-7 sm:p-8 w-full cursor-default flex flex-col justify-between overflow-hidden border border-[#302D28] hover:border-[#C7A46A]/40 transition-all duration-300 shadow-xl"
+                className="bg-[#151517] relative rounded-2xl md:rounded-3xl p-5 sm:p-7 md:p-8 w-full cursor-default flex flex-col justify-between overflow-hidden border border-[#302D28] hover:border-[#C7A46A]/40 transition-all duration-300 shadow-xl"
               >
-                {/* Floating Badge */}
-                {item.highlight && (
-                  <div className="absolute top-4 right-4 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase flex items-center justify-center border border-[#C7A46A]/30 bg-[#C7A46A]/10 text-[#C7A46A]">
-                    {item.highlight}
-                  </div>
-                )}
-
-                <div>
-                  <div className="flex items-center gap-3.5 mb-5">
+                <div className="flex flex-col flex-grow">
+                  {/* Top row: Icon + Highlight Badge */}
+                  <div className="flex items-start justify-between gap-3 mb-4">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-[#202023] border border-[#302D28] text-[#C7A46A] shadow-inner p-3">
                       <Icon size={22} />
                     </div>
-                    <div className="pr-12 sm:pr-0">
-                      <h3 className="text-[#F4F0E8] font-bold text-base sm:text-lg leading-tight font-heading">{item.title}</h3>
-                      <p className="text-xs font-medium text-[#C7A46A] mt-0.5">
-                        {item.subtitle}
-                      </p>
-                    </div>
+                    {item.highlight && (
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase border border-[#C7A46A]/30 bg-[#C7A46A]/10 text-[#C7A46A] shrink-0">
+                        {item.highlight}
+                      </span>
+                    )}
                   </div>
 
-                  <p className="text-[#A7A198] text-xs sm:text-sm leading-relaxed mb-6">{item.description}</p>
+                  {/* Title & Subtitle */}
+                  <div className="mb-3">
+                    <h3 className="text-[#F4F0E8] font-bold text-base sm:text-lg leading-snug font-heading">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm font-medium text-[#C7A46A] mt-0.5">
+                      {item.subtitle}
+                    </p>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-[#A7A198] text-xs sm:text-sm leading-relaxed mb-6 flex-grow">
+                    {item.description}
+                  </p>
                 </div>
 
-                <Link href={`/achievements/${item.category}`} className="w-full mt-auto">
+                {/* Button */}
+                <Link href={`/achievements/${item.category}`} className="w-full mt-auto block pt-2">
                   <motion.button
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}

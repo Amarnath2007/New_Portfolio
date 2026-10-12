@@ -45,7 +45,7 @@ const skillCategories = [
 
 export default function Skills() {
   return (
-    <section id="skills" className="relative z-10 pt-6 md:pt-10 pb-0 scroll-mt-20 md:scroll-mt-24">
+    <section id="skills" className="relative z-10 pt-6 md:pt-10 pb-0 scroll-mt-24 md:scroll-mt-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header with balanced top spacing */}
         <motion.div
@@ -115,7 +115,7 @@ export default function Skills() {
                 </div>
 
                 {/* Column 4: Technology Badges (starts at the exact same column for all rows) */}
-                <div className="w-full pl-8 md:pl-0 flex items-center">
+                <div className="w-full pl-0 xs:pl-8 md:pl-0 flex items-center">
                   {isAiTools ? (
                     /* AI Tools: 8 tools balanced across two clean lines of 4 tools each */
                     <div className="flex flex-col gap-1.5 sm:gap-2 w-full">

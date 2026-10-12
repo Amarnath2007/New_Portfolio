@@ -75,7 +75,7 @@ export default function Certifications() {
   };
 
   return (
-    <section id="certifications" className="relative z-10 pt-16 md:pt-20 pb-0 scroll-mt-20 md:scroll-mt-24">
+    <section id="certifications" className="relative z-10 pt-16 md:pt-20 pb-0 scroll-mt-24 md:scroll-mt-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
@@ -93,8 +93,55 @@ export default function Certifications() {
           </h2>
         </motion.div>
 
-        {/* Horizontally Scrollable Carousel */}
-        <div className="relative group/carousel">
+        {/* Mobile View: Vertical Stack */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:hidden">
+          {certs.map((cert, i) => (
+            <motion.div
+              key={cert.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: i * 0.08 }}
+              viewport={{ once: true }}
+              className="bg-[#151517] rounded-2xl p-5 sm:p-7 group w-full flex flex-col justify-between border border-[#302D28] hover:border-[#C7A46A]/40 transition-all duration-300 shadow-xl"
+            >
+              <div className="flex flex-col flex-grow">
+                {/* Badge Icon */}
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-[#202023] border border-[#302D28] text-[#C7A46A] shadow-inner p-3 shrink-0">
+                  <BadgeCheck size={24} />
+                </div>
+
+                {/* Title & Issuer */}
+                <h3 className="text-[#F4F0E8] font-bold text-base sm:text-lg mb-1 font-heading leading-snug">
+                  {cert.title}
+                </h3>
+                <p className="text-xs sm:text-sm font-medium mb-3 text-[#C7A46A]">
+                  {cert.issuer}
+                </p>
+
+                {/* Description */}
+                <p className="text-[#A7A198] text-xs sm:text-sm leading-relaxed mb-6 flex-grow">
+                  {cert.description}
+                </p>
+              </div>
+
+              {/* Link / Open Modal Button */}
+              <div className="pt-4 border-t border-[#302D28] mt-auto">
+                <button 
+                  id={`view-cert-mobile-${i}`}
+                  type="button"
+                  onClick={() => setSelectedCert(cert as any)}
+                  className="flex items-center gap-2 text-xs sm:text-sm text-[#A7A198] hover:text-[#C7A46A] font-medium transition-colors cursor-pointer text-left group/btn w-full"
+                >
+                  <ExternalLink size={14} className="group-hover/btn:scale-110 transition-transform" />
+                  <span>View Certificate</span>
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Desktop View: Horizontal Carousel */}
+        <div className="hidden md:block relative group/carousel">
           <div 
             ref={scrollRef}
             className="flex gap-4 md:gap-6 overflow-x-auto scroll-smooth pb-6 md:px-1 items-stretch [&::-webkit-scrollbar]:hidden" 
@@ -107,7 +154,7 @@ export default function Certifications() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-[#151517] rounded-2xl md:rounded-3xl p-7 sm:p-8 group flex-shrink-0 w-[88%] sm:w-[360px] flex flex-col justify-between border border-[#302D28] hover:border-[#C7A46A]/40 transition-all duration-300 shadow-xl"
+                className="bg-[#151517] rounded-2xl md:rounded-3xl p-7 sm:p-8 group flex-shrink-0 w-[360px] flex flex-col justify-between border border-[#302D28] hover:border-[#C7A46A]/40 transition-all duration-300 shadow-xl"
               >
                 <div>
                   {/* Badge Icon */}

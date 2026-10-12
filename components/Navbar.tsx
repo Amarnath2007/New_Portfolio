@@ -37,11 +37,23 @@ export default function Navbar() {
     };
   }, []);
 
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [menuOpen]);
+
   const scrollTo = (href: string) => {
     const id = href.startsWith("#") ? href.slice(1) : href;
     const el = document.getElementById(id);
     if (el) {
-      const navOffset = 96; // accounts for 80px fixed navbar height + 16px breathing room
+      const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+      const navOffset = isMobile ? 72 : 96;
       const elementPosition = el.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - navOffset;
       window.scrollTo({
@@ -61,12 +73,12 @@ export default function Navbar() {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-[#0B0B0C]/90 backdrop-blur-xl border-b border-[#302D28]/70 shadow-lg"
-          : "bg-transparent"
+          ? "bg-[#0B0B0C]/95 backdrop-blur-xl border-b border-[#302D28]/70 shadow-lg"
+          : "bg-[#0B0B0C]/80 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border-b border-[#302D28]/40 md:border-b-0"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
           <motion.div
             className="text-xl font-bold cursor-pointer font-heading tracking-tight"
@@ -78,7 +90,7 @@ export default function Navbar() {
           </motion.div>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-1.5 bg-[#151517]/60 border border-[#302D28]/60 rounded-full px-3 py-1.5 backdrop-blur-md">
+          <div className="hidden lg:flex items-center gap-1.5 bg-[#151517]/60 border border-[#302D28]/60 rounded-full px-3 py-1.5 backdrop-blur-md">
             {navLinks.map((link) => {
               const isActive = activeSection === link.href.slice(1);
               return (
@@ -100,7 +112,7 @@ export default function Navbar() {
           </div>
 
           {/* Contact Button */}
-          <div className="hidden md:block">
+          <div className="hidden lg:block">
             <motion.button
               onClick={() => scrollTo("#contact")}
               whileHover={{ scale: 1.03 }}
@@ -113,7 +125,7 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden text-[#A7A198] hover:text-[#F4F0E8] z-50 p-2 rounded-xl bg-[#151517] border border-[#302D28]"
+            className="lg:hidden text-[#A7A198] hover:text-[#F4F0E8] p-2 rounded-xl bg-[#151517] border border-[#302D28] transition-colors"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
           >
@@ -132,7 +144,7 @@ export default function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMenuOpen(false)}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden"
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden"
             />
             {/* Drawer */}
             <motion.div
@@ -140,13 +152,20 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 w-[280px] bg-[#151517] border-l border-[#302D28] z-50 md:hidden p-6 flex flex-col"
+              className="fixed top-0 right-0 bottom-0 w-[280px] sm:w-[320px] bg-[#151517] border-l border-[#302D28] z-50 lg:hidden p-6 flex flex-col"
             >
               <div className="flex justify-between items-center mb-8">
                 <div className="text-xl font-bold cursor-pointer font-heading" onClick={() => { scrollTo("#home"); setMenuOpen(false); }}>
                   <span className="text-[#F4F0E8]">Portfolio</span>
                   <span className="text-[#C7A46A]">.</span>
                 </div>
+                <button
+                  onClick={() => setMenuOpen(false)}
+                  className="p-2 rounded-xl bg-[#202023] border border-[#302D28] text-[#A7A198] hover:text-[#C7A46A] transition-colors"
+                  aria-label="Close menu"
+                >
+                  <X size={20} />
+                </button>
               </div>
 
               <div className="flex flex-col gap-2">

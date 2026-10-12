@@ -15,9 +15,17 @@ const navLinks = [
 
 export default function Footer() {
   const scrollTo = (id: string) => {
-    document
-      .getElementById(id.toLowerCase())
-      ?.scrollIntoView({ behavior: "smooth" });
+    const el = document.getElementById(id.toLowerCase());
+    if (el) {
+      const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+      const navOffset = isMobile ? 72 : 96;
+      const elementPosition = el.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
   };
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
@@ -61,7 +69,7 @@ export default function Footer() {
         </div>
 
         {/* Nav Links */}
-        <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 mb-12 border-y border-[#302D28]/60 py-6">
+        <div className="flex flex-wrap justify-center gap-x-6 sm:gap-x-8 gap-y-3 sm:gap-y-4 mb-12 border-y border-[#302D28]/60 py-6">
           {navLinks.map((l) => (
             <button
               key={l}

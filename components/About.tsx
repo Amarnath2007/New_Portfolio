@@ -22,7 +22,7 @@ const tags = ["C", "C++", "Python", "Java", "Problem Solving", "AI Tools", "Debu
 
 export default function About() {
   return (
-    <section id="about" className="relative z-10 pt-16 md:pt-20 pb-0 scroll-mt-20 md:scroll-mt-24">
+    <section id="about" className="relative z-10 pt-16 md:pt-20 pb-0 scroll-mt-24 md:scroll-mt-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
@@ -46,7 +46,7 @@ export default function About() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="max-w-6xl mx-auto bg-[#151517] rounded-3xl p-6 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 border border-[#302D28] shadow-2xl items-center"
+          className="max-w-6xl mx-auto bg-[#151517] rounded-3xl p-5 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 border border-[#302D28] shadow-2xl items-center"
         >
           {/* Left Column */}
           <div className="text-center lg:text-left flex flex-col justify-between">
@@ -104,7 +104,7 @@ export default function About() {
           {/* Right Column */}
           <div className="flex flex-col gap-5 justify-center">
             {/* Details */}
-            <div className="space-y-3.5 bg-[#202023] p-5 sm:p-6 rounded-2xl border border-[#302D28]">
+            <div className="space-y-3.5 bg-[#202023] p-4 sm:p-6 rounded-2xl border border-[#302D28]">
               {details.map((d) => (
                 <div key={d.label} className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-4 pb-2.5 sm:pb-0 border-b border-[#302D28]/60 sm:border-none last:border-none last:pb-0">
                   <span className="text-[#A7A198] text-xs sm:text-sm w-full sm:w-28 flex-shrink-0 font-medium">
@@ -121,7 +121,7 @@ export default function About() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 gap-3.5 p-5 sm:p-6 rounded-2xl bg-[#0B0B0C] border border-[#302D28]">
+            <div className="grid grid-cols-2 gap-3.5 p-4 sm:p-6 rounded-2xl bg-[#0B0B0C] border border-[#302D28]">
               {stats.map((s, i) => (
                 <motion.div
                   key={s.label}
