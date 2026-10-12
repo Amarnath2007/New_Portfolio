@@ -2,12 +2,29 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Award, Zap, ArrowRight, X } from "lucide-react";
+import { Trophy, Award, Zap, ArrowRight, X, Medal, Sparkles, Star } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import SectionDivider from "./SectionDivider";
+import { Achievement } from "@/lib/portfolio-data";
 
-const achievements = [
+const ICON_MAP: Record<string, any> = {
+  Trophy,
+  Award,
+  Zap,
+  Medal,
+  Sparkles,
+  Star,
+};
+
+function resolveAchievementIcon(icon: any) {
+  if (typeof icon === "string") {
+    return ICON_MAP[icon] || Trophy;
+  }
+  return icon || Trophy;
+}
+
+const defaultAchievements = [
   {
     icon: Trophy,
     title: "Inter-College Wins",
@@ -36,8 +53,13 @@ const achievements = [
   },
 ];
 
-export default function Achievements() {
+interface AchievementsProps {
+  data?: Achievement[];
+}
+
+export default function Achievements({ data }: AchievementsProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const items = data && data.length > 0 ? data : defaultAchievements;
 
   return (
     <section id="achievements" className="relative z-10 pt-16 md:pt-20 pb-0 scroll-mt-24 md:scroll-mt-28">
@@ -60,11 +82,15 @@ export default function Achievements() {
 
         {/* Balanced Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-          {achievements.map((item, i) => {
-            const Icon = item.icon;
+          {items.map((item: any, i: number) => {
+            const Icon = resolveAchievementIcon(item.icon);
+            const badge = item.highlight || item.position_award;
+            const subtitleText = item.subtitle || item.event_name;
+            const targetCategory = item.category || "intercollege";
+
             return (
               <motion.div
-                key={item.title}
+                key={item.id || item.title || i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
@@ -77,9 +103,9 @@ export default function Achievements() {
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-[#202023] border border-[#302D28] text-[#C7A46A] shadow-inner p-3">
                       <Icon size={22} />
                     </div>
-                    {item.highlight && (
+                    {badge && (
                       <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase border border-[#C7A46A]/30 bg-[#C7A46A]/10 text-[#C7A46A] shrink-0">
-                        {item.highlight}
+                        {badge}
                       </span>
                     )}
                   </div>
@@ -89,10 +115,32 @@ export default function Achievements() {
                     <h3 className="text-[#F4F0E8] font-bold text-base sm:text-lg leading-snug font-heading">
                       {item.title}
                     </h3>
-                    <p className="text-xs sm:text-sm font-medium text-[#C7A46A] mt-0.5">
-                      {item.subtitle}
-                    </p>
+                    {subtitleText && (
+                      <p className="text-xs sm:text-sm font-medium text-[#C7A46A] mt-0.5">
+                        {subtitleText}
+                      </p>
+                    )}
+                    {item.date && (
+                      <p className="text-[11px] text-[#A7A198]/80 mt-0.5">
+                        {item.date}
+                      </p>
+                    )}
                   </div>
+
+                  {/* Optional Image Thumbnail */}
+                  {item.image && (
+                    <div
+                      className="relative h-36 w-full mb-4 rounded-xl overflow-hidden bg-[#202023] border border-[#302D28] cursor-pointer group/thumb"
+                      onClick={() => setSelectedImage(item.image)}
+                    >
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        className="object-cover group-hover/thumb:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                  )}
 
                   {/* Description */}
                   <p className="text-[#A7A198] text-xs sm:text-sm leading-relaxed mb-6 flex-grow">
@@ -101,16 +149,29 @@ export default function Achievements() {
                 </div>
 
                 {/* Button */}
-                <Link href={`/achievements/${item.category}`} className="w-full mt-auto block pt-2">
-                  <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-[#302D28] bg-[#202023] text-[#F4F0E8] hover:bg-[#C7A46A]/15 hover:border-[#C7A46A]/50 hover:text-[#C7A46A] text-xs sm:text-sm font-semibold transition-all duration-200"
-                  >
-                    View Certificates
-                    <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
-                  </motion.button>
-                </Link>
+                <div className="w-full mt-auto pt-2 flex flex-col gap-2">
+                  {item.image ? (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedImage(item.image)}
+                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-[#302D28] bg-[#202023] text-[#F4F0E8] hover:bg-[#C7A46A]/15 hover:border-[#C7A46A]/50 hover:text-[#C7A46A] text-xs sm:text-sm font-semibold transition-all duration-200"
+                    >
+                      View Photo / Proof
+                      <ArrowRight size={15} />
+                    </button>
+                  ) : (
+                    <Link href={`/achievements/${targetCategory}`} className="w-full block">
+                      <motion.button
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-[#302D28] bg-[#202023] text-[#F4F0E8] hover:bg-[#C7A46A]/15 hover:border-[#C7A46A]/50 hover:text-[#C7A46A] text-xs sm:text-sm font-semibold transition-all duration-200"
+                      >
+                        View Certificates
+                        <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
+                      </motion.button>
+                    </Link>
+                  )}
+                </div>
               </motion.div>
             );
           })}

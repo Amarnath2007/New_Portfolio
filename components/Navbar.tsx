@@ -144,7 +144,7 @@ export default function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMenuOpen(false)}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden"
+              className="fixed inset-0 bg-black/95 backdrop-blur-md z-[99] lg:hidden"
             />
             {/* Drawer */}
             <motion.div
@@ -152,7 +152,7 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 w-[280px] sm:w-[320px] bg-[#151517] border-l border-[#302D28] z-50 lg:hidden p-6 flex flex-col"
+              className="fixed top-0 right-0 bottom-0 w-[280px] sm:w-[320px] bg-[#0B0B0C] border-l border-[#302D28] z-[100] lg:hidden p-6 flex flex-col shadow-2xl"
             >
               <div className="flex justify-between items-center mb-8">
                 <div className="text-xl font-bold cursor-pointer font-heading" onClick={() => { scrollTo("#home"); setMenuOpen(false); }}>

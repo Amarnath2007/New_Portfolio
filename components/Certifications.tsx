@@ -6,6 +6,7 @@ import { BadgeCheck, ExternalLink, ChevronLeft, ChevronRight } from "lucide-reac
 import SectionDivider from "./SectionDivider";
 import { supabase } from "@/lib/supabase";
 import CertificateModal, { CertificateModalData } from "./CertificateModal";
+import { Certification } from "@/lib/portfolio-data";
 
 const initialCerts = [
   {
@@ -34,20 +35,29 @@ const initialCerts = [
   },
 ];
 
-export default function Certifications() {
-  const [certs, setCerts] = useState(initialCerts);
+interface CertificationsProps {
+  data?: Certification[];
+}
+
+export default function Certifications({ data }: CertificationsProps) {
+  const [certs, setCerts] = useState<any[]>(data && data.length > 0 ? data : initialCerts);
   const [selectedCert, setSelectedCert] = useState<CertificateModalData | null>(null);
 
   useEffect(() => {
+    if (data && data.length > 0) {
+      setCerts(data);
+      return;
+    }
+
     async function fetchCerts() {
       try {
-        const { data } = await supabase
+        const { data: supaData } = await supabase
           .from("certificates")
           .select("*")
           .limit(4);
         
-        if (data && data.length > 0) {
-          setCerts(data);
+        if (supaData && supaData.length > 0) {
+          setCerts(supaData);
         } else {
           const enrichedCerts = await Promise.all(initialCerts.map(async (cert) => {
             const { data: urlData } = supabase.storage
@@ -62,7 +72,7 @@ export default function Certifications() {
       }
     }
     fetchCerts();
-  }, []);
+  }, [data]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 

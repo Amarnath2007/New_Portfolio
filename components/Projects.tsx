@@ -3,9 +3,11 @@
 import { useRef } from "react";
 import { motion } from "framer-motion";
 import { Github, ExternalLink, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import Image from "next/image";
 import SectionDivider from "./SectionDivider";
+import { Project } from "@/lib/portfolio-data";
 
-const projects = [
+const defaultProjects = [
   {
     letter: "T",
     title: "Tunic Music",
@@ -76,7 +78,12 @@ const projects = [
   },
 ];
 
-export default function Projects() {
+interface ProjectsProps {
+  data?: Project[];
+}
+
+export default function Projects({ data }: ProjectsProps) {
+  const items = data && data.length > 0 ? data : defaultProjects;
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
@@ -113,9 +120,9 @@ export default function Projects() {
             className="flex gap-4 md:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-6 md:px-1 items-stretch [&::-webkit-scrollbar]:hidden" 
             style={{ scrollbarWidth: 'none' }}
           >
-            {projects.map((p, i) => (
+            {items.map((p: any, i: number) => (
               <motion.div
-                key={p.title}
+                key={p.id || p.title || i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
@@ -124,10 +131,21 @@ export default function Projects() {
               >
                 {/* Thumbnail / Header */}
                 <div className="h-40 sm:h-44 bg-gradient-to-br from-[#202023] via-[#18181A] to-[#151517] flex items-center justify-center relative overflow-hidden shrink-0 border-b border-[#302D28]">
-                  <div className="absolute inset-0 bg-radial from-[#C7A46A]/10 to-transparent opacity-40" />
-                  <span className="text-7xl sm:text-6xl font-extrabold relative z-10 select-none font-heading text-[#C7A46A]/80 tracking-tight">
-                    {p.letter}
-                  </span>
+                  {p.image ? (
+                    <Image
+                      src={p.image}
+                      alt={p.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <>
+                      <div className="absolute inset-0 bg-radial from-[#C7A46A]/10 to-transparent opacity-40" />
+                      <span className="text-7xl sm:text-6xl font-extrabold relative z-10 select-none font-heading text-[#C7A46A]/80 tracking-tight">
+                        {p.letter || (p.title ? p.title[0] : "P")}
+                      </span>
+                    </>
+                  )}
                 </div>
 
                 {/* Content */}
@@ -151,7 +169,7 @@ export default function Projects() {
                       {p.description}
                     </p>
                     <div className="mb-5 space-y-2">
-                      {p.highlights.map((highlight, idx) => (
+                      {(p.highlights || []).map((highlight: string, idx: number) => (
                         <div key={idx} className="flex items-start gap-2.5">
                           <span className="text-[#C7A46A] mt-1.5 w-1.5 h-1.5 rounded-full bg-[#C7A46A] shrink-0" />
                           <span className="text-[#F4F0E8]/90 text-xs sm:text-sm">{highlight}</span>
@@ -162,7 +180,7 @@ export default function Projects() {
 
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-5 border-t border-[#302D28] gap-4 mt-auto">
                     <div className="flex gap-2 flex-wrap">
-                      {p.tags.map((t) => (
+                      {(p.tags || []).map((t: string) => (
                         <span
                           key={t}
                           className="px-2.5 py-1 rounded-lg bg-[#202023] text-[#A7A198] text-[11px] font-medium border border-[#302D28]"

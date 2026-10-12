@@ -1,10 +1,54 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Code2, Layout, Database, Smartphone, Brain, Sparkles } from "lucide-react";
+import {
+  Code2,
+  Layout,
+  Database,
+  Smartphone,
+  Brain,
+  Sparkles,
+  Terminal,
+  Cpu,
+  Globe,
+  Server,
+  Wrench,
+  Shield,
+  Zap,
+  Folder,
+  Layers,
+  Award,
+} from "lucide-react";
 import SectionDivider from "./SectionDivider";
+import { SkillCategory } from "@/lib/portfolio-data";
 
-const skillCategories = [
+const ICON_MAP: Record<string, any> = {
+  Code2,
+  Layout,
+  Database,
+  Smartphone,
+  Brain,
+  Sparkles,
+  Terminal,
+  Cpu,
+  Globe,
+  Server,
+  Wrench,
+  Shield,
+  Zap,
+  Folder,
+  Layers,
+  Award,
+};
+
+function resolveIcon(icon: any) {
+  if (typeof icon === "string") {
+    return ICON_MAP[icon] || Code2;
+  }
+  return icon || Code2;
+}
+
+const defaultSkillCategories = [
   {
     num: "01",
     title: "Programming",
@@ -43,7 +87,13 @@ const skillCategories = [
   },
 ];
 
-export default function Skills() {
+interface SkillsProps {
+  data?: SkillCategory[];
+}
+
+export default function Skills({ data }: SkillsProps) {
+  const categories = data && data.length > 0 ? data : defaultSkillCategories;
+
   return (
     <section id="skills" className="relative z-10 pt-6 md:pt-10 pb-0 scroll-mt-24 md:scroll-mt-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -71,19 +121,20 @@ export default function Skills() {
           viewport={{ once: true }}
           className="max-w-5xl lg:max-w-[1060px] mx-auto bg-[#151517] border border-[#302D28] rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl divide-y divide-[#302D28]/70"
         >
-          {skillCategories.map((category) => {
-            const Icon = category.icon;
-            const isAiTools = category.num === "06";
+          {categories.map((category, index) => {
+            const Icon = resolveIcon(category.icon);
+            const numDisplay = category.num || String(index + 1).padStart(2, "0");
+            const isAiTools = numDisplay === "06" || category.title.toLowerCase().includes("ai tool");
 
             return (
               <div
-                key={category.num}
+                key={(category as any).id || category.num || index}
                 className="flex flex-col md:grid md:grid-cols-[28px_36px_210px_1fr] lg:grid-cols-[32px_40px_230px_1fr] items-start md:items-center py-4 md:py-4.5 px-4 sm:px-6 lg:px-8 hover:bg-[#202023]/40 transition-colors duration-150 gap-3 md:gap-x-4 min-h-[76px] md:min-h-[82px]"
               >
                 {/* Column 1: Number */}
                 <div className="hidden md:flex items-center">
                   <span className="text-xs font-mono font-semibold text-[#C7A46A] tracking-wider">
-                    {category.num}
+                    {numDisplay}
                   </span>
                 </div>
 
@@ -104,7 +155,7 @@ export default function Skills() {
                 {/* Mobile Header (Columns 1, 2, 3 combined on mobile) */}
                 <div className="flex md:hidden items-center gap-3 w-full">
                   <span className="text-xs font-mono font-semibold text-[#C7A46A] tracking-wider w-5 shrink-0">
-                    {category.num}
+                    {numDisplay}
                   </span>
                   <div className="w-7 h-7 rounded-lg bg-[#202023] border border-[#302D28] text-[#C7A46A] flex items-center justify-center shrink-0 shadow-inner">
                     <Icon size={15} />
