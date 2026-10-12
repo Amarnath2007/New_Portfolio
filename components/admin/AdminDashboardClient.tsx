@@ -1587,6 +1587,7 @@ export default function AdminDashboardClient() {
                       <option value="intercollege">Inter-College Wins</option>
                       <option value="events">College Wins (Internal)</option>
                       <option value="hackathon">Hackathon Prizes</option>
+                      <option value="participations">Event Participations (Inside & Outside College)</option>
                     </select>
                   </div>
                 </div>

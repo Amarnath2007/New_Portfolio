@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import StarsBg from "@/components/StarsBg";
 import Footer from "@/components/Footer";
+import CertificateModal, { CertificateModalData } from "@/components/CertificateModal";
 
 interface AchievementFile {
   id: string;
@@ -22,6 +23,7 @@ const CATEGORY_NAMES: Record<string, string> = {
   intercollege: "Inter-College Wins",
   hackathon: "Hackathon Prizes",
   events: "College Wins (PSG CAS)",
+  participations: "Event Participations",
 };
 
 export default function AchievementGallery() {
@@ -30,32 +32,67 @@ export default function AchievementGallery() {
   const [files, setFiles] = useState<AchievementFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedCert, setSelectedCert] = useState<CertificateModalData | null>(null);
 
   useEffect(() => {
     async function fetchFiles() {
       try {
-        const { data, error } = await supabase.storage
-          .from("achievements")
-          .list(category);
+        const foundFiles: AchievementFile[] = [];
 
-        if (error) throw error;
+        // 1. Fetch from Supabase storage bucket (if files exist there)
+        try {
+          const { data, error } = await supabase.storage
+            .from("achievements")
+            .list(category);
 
-        if (data) {
-          const formattedFiles = data.map((file) => {
-            const isPdf = file.name.toLowerCase().endsWith(".pdf");
-            const { data: urlData } = supabase.storage
-              .from("achievements")
-              .getPublicUrl(`${category}/${file.name}`);
-            
-            return {
-              id: file.id || file.name,
-              name: file.name,
-              url: urlData.publicUrl,
-              type: isPdf ? ("pdf" as const) : ("image" as const),
-            };
-          });
-          setFiles(formattedFiles);
+          if (!error && data && data.length > 0) {
+            data.forEach((file) => {
+              const isPdf = file.name.toLowerCase().endsWith(".pdf");
+              const { data: urlData } = supabase.storage
+                .from("achievements")
+                .getPublicUrl(`${category}/${file.name}`);
+
+              foundFiles.push({
+                id: file.id || file.name,
+                name: file.name,
+                url: urlData.publicUrl,
+                type: isPdf ? ("pdf" as const) : ("image" as const),
+              });
+            });
+          }
+        } catch (supaErr) {
+          console.warn("Supabase bucket fetch skipped:", supaErr);
         }
+
+        // 2. Fetch from Portfolio published data
+        try {
+          const res = await fetch("/api/portfolio-data");
+          if (res.ok) {
+            const json = await res.json();
+            const achievements = json.data?.achievements || [];
+            achievements.forEach((ach: any) => {
+              if (ach.category === category) {
+                const targetUrl = ach.proof_document || ach.image;
+                if (targetUrl) {
+                  const isPdf = targetUrl.toLowerCase().includes(".pdf");
+                  // Avoid duplicates
+                  if (!foundFiles.some((f) => f.url === targetUrl)) {
+                    foundFiles.push({
+                      id: ach.id,
+                      name: `${ach.title} — ${ach.event_name || ach.position_award || "Certificate"}`,
+                      url: targetUrl,
+                      type: isPdf ? ("pdf" as const) : ("image" as const),
+                    });
+                  }
+                }
+              }
+            });
+          }
+        } catch (dataErr) {
+          console.warn("Portfolio data fetch skipped:", dataErr);
+        }
+
+        setFiles(foundFiles);
       } catch (err) {
         console.error("Error fetching achievement files:", err);
       } finally {
@@ -72,7 +109,11 @@ export default function AchievementGallery() {
     if (file.type === "image") {
       setSelectedImage(file.url);
     } else {
-      window.open(file.url, "_blank");
+      setSelectedCert({
+        title: file.name,
+        issuer: CATEGORY_NAMES[category] || "Achievement Certificate",
+        file_url: file.url,
+      });
     }
   };
 
@@ -97,7 +138,7 @@ export default function AchievementGallery() {
             {CATEGORY_NAMES[category] || "Achievements"} <span className="text-[#C7A46A]">Gallery</span>
           </h1>
           <p className="text-[#A7A198] text-base sm:text-lg max-w-2xl">
-            A collection of certificates and captures from my journey in {CATEGORY_NAMES[category]?.toLowerCase() || "this category"}.
+            A verified collection of certificates, awards, and captures from {CATEGORY_NAMES[category]?.toLowerCase() || "this category"}.
           </p>
         </div>
 
@@ -152,7 +193,7 @@ export default function AchievementGallery() {
                     className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-[#202023] border border-[#302D28] text-[#F4F0E8] text-xs sm:text-sm font-semibold hover:bg-[#C7A46A] hover:text-[#191919] hover:border-[#C7A46A] transition-all duration-300"
                   >
                     <ExternalLink size={14} />
-                    {file.type === "image" ? "View Certificate" : "Open PDF"}
+                    View Certificate
                   </button>
                 </div>
               </motion.div>
@@ -168,7 +209,7 @@ export default function AchievementGallery() {
         )}
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Image Lightbox Modal */}
       <AnimatePresence>
         {selectedImage && (
           <motion.div
@@ -204,6 +245,12 @@ export default function AchievementGallery() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Custom Certificate Lightbox Modal for PDFs */}
+      <CertificateModal
+        cert={selectedCert}
+        onClose={() => setSelectedCert(null)}
+      />
 
       <Footer />
     </main>

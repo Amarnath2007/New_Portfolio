@@ -51,6 +51,15 @@ const defaultAchievements = [
     description:
       "Building functional prototypes and solving real-world problems under pressure. Secured multiple podium finishes.",
   },
+  {
+    icon: Award,
+    title: "Event Participations",
+    highlight: "📜 Participations",
+    subtitle: "Inside & Outside College",
+    category: "participations",
+    description:
+      "Active participation across technical symposiums, workshops, coding contests, and conferences spanning multiple institutions.",
+  },
 ];
 
 interface AchievementsProps {
@@ -81,7 +90,7 @@ export default function Achievements({ data }: AchievementsProps) {
         </motion.div>
 
         {/* Balanced Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
+        <div className={`grid ${items.length <= 3 ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-6xl" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 max-w-7xl"} gap-5 lg:gap-6 mx-auto`}>
           {items.map((item: any, i: number) => {
             const Icon = resolveAchievementIcon(item.icon);
             const badge = item.highlight || item.position_award;
