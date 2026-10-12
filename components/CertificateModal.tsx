@@ -67,6 +67,7 @@ export default function CertificateModal({ cert, onClose }: CertificateModalProp
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [customErrorMessage, setCustomErrorMessage] = useState<string | null>(null);
   const [images, setImages] = useState<string[]>([]);
   const [zoom, setZoom] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -126,27 +127,37 @@ export default function CertificateModal({ cert, onClose }: CertificateModalProp
       return;
     }
 
-    // 2. PDF / Google Drive rendering via PDF.js
-    async function loadCertificatePdf() {
+    // 2. Google Drive / PDF / Image proxy loading
+    async function loadCertificateDocument() {
       try {
         const isGDrive = /drive\.google\.com|docs\.google\.com/i.test(fileUrl);
         const fetchUrl = isGDrive
           ? `/api/certificate-pdf?url=${encodeURIComponent(fileUrl)}`
           : fileUrl;
 
-        let arrayBuffer: ArrayBuffer;
-        try {
-          const res = await fetch(fetchUrl);
-          if (!res.ok) throw new Error(`Fetch error: ${res.status}`);
-          arrayBuffer = await res.arrayBuffer();
-        } catch (fetchErr) {
-          // If direct fetch fails, fallback to API proxy
-          const proxyUrl = `/api/certificate-pdf?url=${encodeURIComponent(fileUrl)}`;
-          const res = await fetch(proxyUrl);
-          if (!res.ok) throw new Error(`Proxy error: ${res.status}`);
-          arrayBuffer = await res.arrayBuffer();
+        let res = await fetch(fetchUrl);
+        if (!res.ok) {
+          if (res.status === 403) {
+            const errJson = await res.json().catch(() => null);
+            throw new Error(errJson?.error || "Permission Denied: Google Drive file is not set to public sharing.");
+          }
+          throw new Error(`Fetch error: ${res.status}`);
         }
 
+        const contentType = (res.headers.get("content-type") || "").toLowerCase();
+
+        // If returned content is an image, display it directly!
+        if (contentType.includes("image")) {
+          const blob = await res.blob();
+          if (isCancelled) return;
+          const blobUrl = URL.createObjectURL(blob);
+          setImages([blobUrl]);
+          setLoading(false);
+          return;
+        }
+
+        // If returned content is PDF, render pages with PDF.js
+        const arrayBuffer = await res.arrayBuffer();
         if (isCancelled) return;
 
         const pdfjsLib = await getPdfjsLib();
@@ -164,7 +175,6 @@ export default function CertificateModal({ cert, onClose }: CertificateModalProp
 
         for (let pageNum = 1; pageNum <= pageLimit; pageNum++) {
           const page = await pdf.getPage(pageNum);
-          // High resolution scale (2.0) for crisp vector rendering on all displays
           const viewport = page.getViewport({ scale: 2.0 });
           const canvas = document.createElement("canvas");
           canvas.width = viewport.width;
@@ -190,16 +200,17 @@ export default function CertificateModal({ cert, onClose }: CertificateModalProp
             setLoading(false);
           }
         }
-      } catch (err) {
-        console.error("Failed to render certificate PDF:", err);
+      } catch (err: any) {
+        console.error("Failed to render certificate document:", err);
         if (!isCancelled) {
+          setCustomErrorMessage(err?.message || null);
           setError(true);
           setLoading(false);
         }
       }
     }
 
-    loadCertificatePdf();
+    loadCertificateDocument();
 
     return () => {
       isCancelled = true;
@@ -303,7 +314,9 @@ export default function CertificateModal({ cert, onClose }: CertificateModalProp
                   </p>
                 )}
                 <p className="text-xs sm:text-sm text-[#A7A198] mb-6 leading-relaxed">
-                  {cert.file_url
+                  {customErrorMessage
+                    ? customErrorMessage
+                    : cert.file_url
                     ? "Direct inline rendering could not be completed for this document. You can open and view the verified certificate directly."
                     : "No document URL is currently attached to this certificate."}
                 </p>

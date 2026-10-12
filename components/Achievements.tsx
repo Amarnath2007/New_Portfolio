@@ -93,7 +93,8 @@ export default function Achievements({ data }: AchievementsProps) {
         <div className={`grid ${items.length <= 3 ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-6xl" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 max-w-7xl"} gap-5 lg:gap-6 mx-auto`}>
           {items.map((item: any, i: number) => {
             const Icon = resolveAchievementIcon(item.icon);
-            const badge = item.highlight || item.position_award;
+            const entryCount = Array.isArray(item.entries) ? item.entries.length : 0;
+            const badge = entryCount > 0 ? `🏆 ${entryCount} ${entryCount === 1 ? 'Win' : 'Wins'}` : (item.highlight || item.position_award);
             const subtitleText = item.subtitle || item.event_name;
             const targetCategory = item.category || "intercollege";
 
@@ -175,7 +176,7 @@ export default function Achievements({ data }: AchievementsProps) {
                         whileTap={{ scale: 0.99 }}
                         className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-[#302D28] bg-[#202023] text-[#F4F0E8] hover:bg-[#C7A46A]/15 hover:border-[#C7A46A]/50 hover:text-[#C7A46A] text-xs sm:text-sm font-semibold transition-all duration-200"
                       >
-                        View Certificates
+                        <span>{entryCount > 0 ? `View Certificates (${entryCount})` : "View Certificates"}</span>
                         <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
                       </motion.button>
                     </Link>

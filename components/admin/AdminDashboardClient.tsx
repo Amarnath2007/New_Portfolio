@@ -42,6 +42,7 @@ import {
   Zap,
   Layers,
   Award,
+  Calendar,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -50,10 +51,18 @@ import {
   PortfolioData,
   SkillCategory,
   Achievement,
+  AchievementCategory,
+  AchievementEntry,
+  FIXED_ACHIEVEMENT_CATEGORIES,
   Certification,
   Project,
   DiffItem,
 } from "@/lib/portfolio-data";
+import {
+  parseGoogleDriveUrl,
+  extractGoogleDriveFileId,
+  resolveDisplayImageUrl,
+} from "@/lib/google-drive";
 
 const AVAILABLE_ICONS = [
   "Code2",
@@ -97,7 +106,29 @@ export default function AdminDashboardClient() {
 
   // Item Edit / Add Modals
   const [editingSkillCategory, setEditingSkillCategory] = useState<{ item: SkillCategory; isNew: boolean } | null>(null);
-  const [editingAchievement, setEditingAchievement] = useState<{ item: Achievement; isNew: boolean } | null>(null);
+  
+  // Achievements State (4 fixed parent categories & their entries)
+  const [activeCategoryKey, setActiveCategoryKey] = useState<string>("intercollege");
+  const [editingEntry, setEditingEntry] = useState<{
+    categoryKey: string;
+    categoryTitle: string;
+    entry: AchievementEntry;
+    isNew: boolean;
+  } | null>(null);
+  const [editingCategoryOverview, setEditingCategoryOverview] = useState<AchievementCategory | null>(null);
+
+  // Google Drive Verification State for Modals
+  const [gdriveVerifyState, setGdriveVerifyState] = useState<{
+    loading: boolean;
+    accessible: boolean | null;
+    fileType?: string;
+    thumbnailUrl?: string;
+    directImageUrl?: string;
+    error?: string;
+    hint?: string;
+    message?: string;
+  }>({ loading: false, accessible: null });
+
   const [editingCertification, setEditingCertification] = useState<{ item: Certification; isNew: boolean } | null>(null);
   const [editingProject, setEditingProject] = useState<{ item: Project; isNew: boolean } | null>(null);
 
@@ -323,35 +354,111 @@ export default function AdminDashboardClient() {
   };
 
   // ==========================================
-  // ACHIEVEMENTS ACTIONS
+  // GOOGLE DRIVE LINK VERIFICATION
   // ==========================================
-  const saveAchievement = (item: Achievement, isNew: boolean) => {
-    if (!data) return;
-    let newItems = [...data.achievements];
-    if (isNew) {
-      newItems.push({ ...item, id: item.id || `ach-${Date.now()}` });
-    } else {
-      newItems = newItems.map((a) => (a.id === item.id ? item : a));
+  const verifyGoogleDriveLink = async (url: string) => {
+    if (!url || !url.trim()) {
+      setGdriveVerifyState({ loading: false, accessible: null });
+      return;
     }
-    saveDraft({ ...data, achievements: newItems });
-    setEditingAchievement(null);
+    const parsed = parseGoogleDriveUrl(url);
+    if (!parsed.isGoogleDrive || !parsed.fileId) {
+      setGdriveVerifyState({ loading: false, accessible: null });
+      return;
+    }
+
+    try {
+      setGdriveVerifyState({ loading: true, accessible: null });
+      const res = await fetch(`/api/admin/verify-gdrive?url=${encodeURIComponent(url.trim())}`);
+      if (res.ok) {
+        const json = await res.json();
+        setGdriveVerifyState({
+          loading: false,
+          accessible: json.accessible,
+          fileType: json.fileType,
+          thumbnailUrl: json.thumbnailUrl,
+          directImageUrl: json.directImageUrl,
+          error: json.error,
+          hint: json.hint,
+          message: json.message,
+        });
+      } else {
+        setGdriveVerifyState({
+          loading: false,
+          accessible: false,
+          error: `Verification error (${res.status})`,
+          hint: "Make sure 'Anyone with the link' has Viewer access in Google Drive sharing settings.",
+        });
+      }
+    } catch (err: any) {
+      setGdriveVerifyState({
+        loading: false,
+        accessible: true,
+        thumbnailUrl: parsed.thumbnailUrl || undefined,
+        directImageUrl: parsed.directImageUrl || undefined,
+        message: "Google Drive link format valid.",
+      });
+    }
   };
 
-  const deleteAchievement = (id: string) => {
+  // ==========================================
+  // ACHIEVEMENTS ACTIONS (4 Fixed Categories & Entries)
+  // ==========================================
+  const saveCategoryEntry = (categoryKey: string, entry: AchievementEntry, isNew: boolean) => {
     if (!data) return;
-    if (!confirm("Are you sure you want to delete this achievement?")) return;
-    const filtered = data.achievements.filter((a) => a.id !== id);
-    saveDraft({ ...data, achievements: filtered });
+    const newAchievements = data.achievements.map((cat) => {
+      if (cat.category !== categoryKey && cat.id !== categoryKey) return cat;
+      const currentEntries = Array.isArray(cat.entries) ? [...cat.entries] : [];
+      let updatedEntries: AchievementEntry[];
+      if (isNew) {
+        updatedEntries = [...currentEntries, { ...entry, id: entry.id || `entry-${Date.now()}` }];
+      } else {
+        updatedEntries = currentEntries.map((e) => (e.id === entry.id ? entry : e));
+      }
+      return { ...cat, entries: updatedEntries };
+    });
+    saveDraft({ ...data, achievements: newAchievements });
+    setEditingEntry(null);
+    showToast(`Achievement entry ${isNew ? "added" : "updated"} successfully!`, "success");
   };
 
-  const moveAchievement = (index: number, direction: "up" | "down") => {
+  const deleteCategoryEntry = (categoryKey: string, entryId: string) => {
     if (!data) return;
-    const newIndex = direction === "up" ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= data.achievements.length) return;
-    const newItems = [...data.achievements];
-    const [moved] = newItems.splice(index, 1);
-    newItems.splice(newIndex, 0, moved);
-    saveDraft({ ...data, achievements: newItems });
+    if (!confirm("Are you sure you want to delete this achievement entry?")) return;
+    const newAchievements = data.achievements.map((cat) => {
+      if (cat.category !== categoryKey && cat.id !== categoryKey) return cat;
+      const currentEntries = Array.isArray(cat.entries) ? cat.entries : [];
+      return { ...cat, entries: currentEntries.filter((e) => e.id !== entryId) };
+    });
+    saveDraft({ ...data, achievements: newAchievements });
+    showToast("Achievement entry deleted.", "info");
+  };
+
+  const moveCategoryEntry = (categoryKey: string, index: number, direction: "up" | "down") => {
+    if (!data) return;
+    const newAchievements = data.achievements.map((cat) => {
+      if (cat.category !== categoryKey && cat.id !== categoryKey) return cat;
+      const currentEntries = Array.isArray(cat.entries) ? [...cat.entries] : [];
+      const newIndex = direction === "up" ? index - 1 : index + 1;
+      if (newIndex < 0 || newIndex >= currentEntries.length) return cat;
+      const [moved] = currentEntries.splice(index, 1);
+      currentEntries.splice(newIndex, 0, moved);
+      return { ...cat, entries: currentEntries };
+    });
+    saveDraft({ ...data, achievements: newAchievements });
+  };
+
+  const saveCategoryOverview = (updatedCat: AchievementCategory) => {
+    if (!data) return;
+    const newAchievements = data.achievements.map((cat) => {
+      if (cat.category === updatedCat.category || cat.id === updatedCat.id) {
+        return { ...cat, ...updatedCat, entries: cat.entries || [] };
+      }
+      return cat;
+    });
+    saveDraft({ ...data, achievements: newAchievements });
+    setEditingCategoryOverview(null);
+    showToast("Category overview updated.", "success");
   };
 
   // ==========================================
@@ -762,136 +869,364 @@ export default function AdminDashboardClient() {
         )}
 
         {/* ========================================================================= */}
-        {/* SECTION B: ACHIEVEMENTS */}
+        {/* SECTION B: ACHIEVEMENTS (4 FIXED CATEGORIES ONLY) */}
         {/* ========================================================================= */}
-        {activeTab === "achievements" && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-              <div>
+        {activeTab === "achievements" && (() => {
+          // Find the active category object
+          const currentCategory =
+            data.achievements.find(
+              (c) => c.category === activeCategoryKey || c.id === activeCategoryKey
+            ) || data.achievements[0];
+
+          const categoryEntries = Array.isArray(currentCategory?.entries)
+            ? currentCategory.entries
+            : [];
+
+          return (
+            <div className="space-y-6">
+              {/* Header Title & Intro */}
+              <div className="pb-2">
                 <h2 className="text-xl sm:text-2xl font-bold font-heading text-[#F4F0E8]">
-                  Achievements & Wins
+                  Achievements Architecture
                 </h2>
                 <p className="text-xs sm:text-sm text-[#A7A198] mt-1">
-                  Manage awards, event placements, certificates, photos, and proof documents.
+                  Manage individual competitions, awards, and certificates inside your four fixed portfolio categories.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() =>
-                  setEditingAchievement({
-                    item: {
-                      id: `ach-${Date.now()}`,
-                      title: "",
-                      event_name: "",
-                      description: "",
-                      position_award: "",
-                      date: "",
-                      category: "intercollege",
-                      icon: "Trophy",
-                      image: "",
-                      proof_document: "",
-                    },
-                    isNew: true,
-                  })
-                }
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#202023] hover:bg-[#C7A46A] text-[#F4F0E8] hover:text-[#151517] border border-[#302D28] hover:border-[#C7A46A] text-xs sm:text-sm font-semibold transition-all shadow-md self-start sm:self-auto"
-              >
-                <Plus size={16} />
-                Add Achievement
-              </button>
-            </div>
 
-            {/* Achievements Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {data.achievements.map((item, index) => (
-                <div
-                  key={item.id}
-                  className="bg-[#151517] border border-[#302D28] rounded-2xl p-6 flex flex-col justify-between hover:border-[#C7A46A]/40 transition-all shadow-xl group"
-                >
-                  <div>
-                    {/* Top row */}
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#202023] border border-[#302D28] text-[#C7A46A] flex items-center justify-center p-2.5">
-                        <Trophy size={20} />
-                      </div>
-                      {item.position_award && (
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase border border-[#C7A46A]/30 bg-[#C7A46A]/10 text-[#C7A46A]">
-                          {item.position_award}
+              {/* Four Fixed Categories Selector Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                {data.achievements.map((cat) => {
+                  const isSelected =
+                    (cat.category || cat.id) === (currentCategory?.category || currentCategory?.id);
+                  const entryCount = Array.isArray(cat.entries) ? cat.entries.length : 0;
+                  const IconComponent =
+                    cat.category === "intercollege"
+                      ? Trophy
+                      : cat.category === "hackathon"
+                      ? Zap
+                      : Award;
+
+                  return (
+                    <button
+                      key={cat.id || cat.category}
+                      type="button"
+                      onClick={() => setActiveCategoryKey(cat.category || cat.id)}
+                      className={`text-left p-4 rounded-2xl border transition-all flex flex-col justify-between ${
+                        isSelected
+                          ? "bg-[#202023] border-[#C7A46A] shadow-lg shadow-[#C7A46A]/10"
+                          : "bg-[#151517] border-[#302D28] hover:border-[#C7A46A]/40 text-[#A7A198]"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full mb-3">
+                        <div
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center p-2 border ${
+                            isSelected
+                              ? "bg-[#C7A46A]/15 border-[#C7A46A]/40 text-[#C7A46A]"
+                              : "bg-[#202023] border-[#302D28] text-[#A7A198]"
+                          }`}
+                        >
+                          <IconComponent size={18} />
+                        </div>
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase border ${
+                            isSelected
+                              ? "bg-[#C7A46A] text-[#151517] border-[#C7A46A]"
+                              : "bg-[#202023] text-[#A7A198] border-[#302D28]"
+                          }`}
+                        >
+                          {entryCount} {entryCount === 1 ? "Entry" : "Entries"}
                         </span>
-                      )}
-                    </div>
-
-                    <h3 className="font-heading font-bold text-base sm:text-lg text-[#F4F0E8] mb-1">
-                      {item.title}
-                    </h3>
-                    <p className="text-xs font-semibold text-[#C7A46A] mb-1">
-                      {item.event_name}
-                    </p>
-                    {item.date && (
-                      <p className="text-[11px] text-[#A7A198]/70 mb-3">
-                        {item.date} • Category: {item.category}
-                      </p>
-                    )}
-
-                    {/* Image Preview if uploaded */}
-                    {item.image && (
-                      <div className="relative h-32 w-full mb-3 rounded-xl overflow-hidden bg-[#202023] border border-[#302D28]">
-                        <Image src={item.image} alt={item.title} fill className="object-cover" />
                       </div>
-                    )}
+                      <div>
+                        <h3
+                          className={`font-heading font-bold text-sm sm:text-base ${
+                            isSelected ? "text-[#F4F0E8]" : "text-[#F4F0E8]/80"
+                          }`}
+                        >
+                          {cat.title}
+                        </h3>
+                        <p className="text-[11px] text-[#A7A198]/70 mt-0.5 truncate">
+                          {cat.event_name || cat.position_award || "Category"}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
 
-                    <p className="text-[#A7A198] text-xs leading-relaxed line-clamp-3 mb-4">
-                      {item.description}
-                    </p>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="pt-3 border-t border-[#302D28] flex items-center justify-between gap-2 mt-auto">
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => moveAchievement(index, "up")}
-                        disabled={index === 0}
-                        className="p-1.5 rounded-lg bg-[#202023] text-[#A7A198] hover:text-[#C7A46A] border border-[#302D28] disabled:opacity-30 disabled:pointer-events-none"
-                        title="Move Up"
-                      >
-                        <ArrowUp size={13} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => moveAchievement(index, "down")}
-                        disabled={index === data.achievements.length - 1}
-                        className="p-1.5 rounded-lg bg-[#202023] text-[#A7A198] hover:text-[#C7A46A] border border-[#302D28] disabled:opacity-30 disabled:pointer-events-none"
-                        title="Move Down"
-                      >
-                        <ArrowDown size={13} />
-                      </button>
+              {/* Active Category Header & Action Banner */}
+              {currentCategory && (
+                <div className="bg-[#151517] border border-[#302D28] rounded-2xl p-5 sm:p-6 shadow-xl">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#302D28]">
+                    <div>
+                      <div className="flex items-center gap-2 text-xs font-semibold text-[#C7A46A] uppercase tracking-wider mb-1">
+                        <span>Category</span>
+                        <span>•</span>
+                        <span>{currentCategory.position_award || "4 Fixed Categories"}</span>
+                      </div>
+                      <h3 className="text-xl sm:text-2xl font-bold font-heading text-[#F4F0E8]">
+                        {currentCategory.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-[#A7A198] mt-1 max-w-2xl">
+                        {currentCategory.description}
+                      </p>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2.5 self-start md:self-auto shrink-0">
                       <button
                         type="button"
-                        onClick={() => setEditingAchievement({ item, isNew: false })}
-                        className="p-1.5 rounded-lg bg-[#202023] text-[#A7A198] hover:text-[#C7A46A] border border-[#302D28] transition-colors"
-                        title="Edit Achievement"
+                        onClick={() => setEditingCategoryOverview(currentCategory)}
+                        className="px-3.5 py-2.5 rounded-xl bg-[#202023] hover:bg-[#28282c] border border-[#302D28] hover:border-[#C7A46A]/50 text-[#A7A198] hover:text-[#F4F0E8] text-xs font-semibold transition-all flex items-center gap-2"
+                        title="Edit Category Overview text & badge"
                       >
                         <Edit2 size={13} />
+                        <span>Edit Overview</span>
                       </button>
+
                       <button
                         type="button"
-                        onClick={() => deleteAchievement(item.id)}
-                        className="p-1.5 rounded-lg bg-[#202023] text-[#A7A198] hover:text-red-400 border border-[#302D28] transition-colors"
-                        title="Delete Achievement"
+                        onClick={() => {
+                          setGdriveVerifyState({ loading: false, accessible: null });
+                          setEditingEntry({
+                            categoryKey: currentCategory.category || currentCategory.id,
+                            categoryTitle: currentCategory.title,
+                            entry: {
+                              id: `entry-${Date.now()}`,
+                              title: "",
+                              event_name: "",
+                              position_award: "",
+                              date: "",
+                              description: "",
+                              certificate_url: "",
+                              image: "",
+                            },
+                            isNew: true,
+                          });
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#C7A46A] hover:bg-[#D8BC8A] text-[#151517] text-xs sm:text-sm font-bold transition-all shadow-md active:scale-95"
                       >
-                        <Trash2 size={13} />
+                        <Plus size={16} />
+                        <span>Add Entry</span>
                       </button>
                     </div>
                   </div>
+
+                  {/* Entries Grid inside this category */}
+                  <div className="pt-6">
+                    {categoryEntries.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {categoryEntries.map((entry, index) => {
+                          const certUrl = entry.certificate_url || entry.proof_document || entry.image;
+                          const gdrive = certUrl ? parseGoogleDriveUrl(certUrl) : null;
+                          const thumbUrl = entry.image
+                            ? resolveDisplayImageUrl(entry.image)
+                            : gdrive?.isGoogleDrive
+                            ? gdrive.thumbnailUrl || gdrive.directImageUrl
+                            : null;
+
+                          return (
+                            <div
+                              key={entry.id || index}
+                              className="bg-[#202023] border border-[#302D28] rounded-2xl p-5 flex flex-col justify-between hover:border-[#C7A46A]/40 transition-all shadow-lg group"
+                            >
+                              <div>
+                                {/* Card Header: Award Badge and Date */}
+                                <div className="flex items-start justify-between gap-2 mb-3">
+                                  <div className="w-8 h-8 rounded-lg bg-[#151517] border border-[#302D28] text-[#C7A46A] flex items-center justify-center p-1.5 shrink-0">
+                                    <Award size={16} />
+                                  </div>
+                                  {entry.position_award && (
+                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase border border-[#C7A46A]/30 bg-[#C7A46A]/10 text-[#C7A46A] truncate max-w-[180px]">
+                                      {entry.position_award}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <h4 className="font-heading font-bold text-sm sm:text-base text-[#F4F0E8] mb-1 leading-snug">
+                                  {entry.title}
+                                </h4>
+                                {entry.event_name && (
+                                  <p className="text-xs font-semibold text-[#C7A46A] mb-1">
+                                    {entry.event_name}
+                                  </p>
+                                )}
+                                {entry.date && (
+                                  <div className="flex items-center gap-1 text-[11px] text-[#A7A198]/70 mb-3">
+                                    <Calendar size={11} />
+                                    <span>{entry.date}</span>
+                                  </div>
+                                )}
+
+                                {/* Thumbnail Preview */}
+                                {thumbUrl ? (
+                                  <div className="relative h-32 w-full mb-3 rounded-xl overflow-hidden bg-[#151517] border border-[#302D28] group/img">
+                                    <img
+                                      src={thumbUrl}
+                                      alt={entry.title}
+                                      className="w-full h-full object-cover"
+                                      loading="lazy"
+                                    />
+                                    {certUrl && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setTestCertModal({
+                                            title: entry.title,
+                                            issuer: currentCategory.title,
+                                            description: entry.description,
+                                            file_url: certUrl,
+                                          })
+                                        }
+                                        className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-xs text-[#F4F0E8] font-semibold"
+                                      >
+                                        <Eye size={14} />
+                                        <span>Test in Viewer</span>
+                                      </button>
+                                    )}
+                                  </div>
+                                ) : certUrl ? (
+                                  <div className="p-2.5 mb-3 rounded-xl bg-[#151517] border border-[#302D28] flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2 text-xs text-[#A7A198] truncate">
+                                      <FileText size={14} className="text-[#C7A46A] shrink-0" />
+                                      <span className="truncate">{certUrl}</span>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setTestCertModal({
+                                          title: entry.title,
+                                          issuer: currentCategory.title,
+                                          description: entry.description,
+                                          file_url: certUrl,
+                                        })
+                                      }
+                                      className="text-[11px] text-[#C7A46A] hover:underline font-semibold shrink-0"
+                                    >
+                                      Test
+                                    </button>
+                                  </div>
+                                ) : null}
+
+                                <p className="text-[#A7A198] text-xs leading-relaxed line-clamp-3 mb-4">
+                                  {entry.description}
+                                </p>
+                              </div>
+
+                              {/* Actions Bottom Bar */}
+                              <div className="pt-3 border-t border-[#302D28] flex items-center justify-between gap-2 mt-auto">
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      moveCategoryEntry(
+                                        currentCategory.category || currentCategory.id,
+                                        index,
+                                        "up"
+                                      )
+                                    }
+                                    disabled={index === 0}
+                                    className="p-1.5 rounded-lg bg-[#151517] text-[#A7A198] hover:text-[#C7A46A] border border-[#302D28] disabled:opacity-30 disabled:pointer-events-none"
+                                    title="Move Up"
+                                  >
+                                    <ArrowUp size={13} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      moveCategoryEntry(
+                                        currentCategory.category || currentCategory.id,
+                                        index,
+                                        "down"
+                                      )
+                                    }
+                                    disabled={index === categoryEntries.length - 1}
+                                    className="p-1.5 rounded-lg bg-[#151517] text-[#A7A198] hover:text-[#C7A46A] border border-[#302D28] disabled:opacity-30 disabled:pointer-events-none"
+                                    title="Move Down"
+                                  >
+                                    <ArrowDown size={13} />
+                                  </button>
+                                </div>
+
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setGdriveVerifyState({ loading: false, accessible: null });
+                                      if (certUrl) verifyGoogleDriveLink(certUrl);
+                                      setEditingEntry({
+                                        categoryKey: currentCategory.category || currentCategory.id,
+                                        categoryTitle: currentCategory.title,
+                                        entry,
+                                        isNew: false,
+                                      });
+                                    }}
+                                    className="p-1.5 rounded-lg bg-[#151517] text-[#A7A198] hover:text-[#C7A46A] border border-[#302D28] transition-colors"
+                                    title="Edit Entry"
+                                  >
+                                    <Edit2 size={13} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      deleteCategoryEntry(
+                                        currentCategory.category || currentCategory.id,
+                                        entry.id
+                                      )
+                                    }
+                                    className="p-1.5 rounded-lg bg-[#151517] text-[#A7A198] hover:text-red-400 border border-[#302D28] transition-colors"
+                                    title="Delete Entry"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-14 px-4 bg-[#202023] rounded-2xl border border-dashed border-[#302D28]">
+                        <Trophy size={36} className="mx-auto mb-3 text-[#C7A46A] opacity-40" />
+                        <h4 className="font-heading font-bold text-sm sm:text-base text-[#F4F0E8] mb-1">
+                          No Entries in {currentCategory.title}
+                        </h4>
+                        <p className="text-xs text-[#A7A198] max-w-md mx-auto mb-5 leading-relaxed">
+                          Add individual competitions, hackathons, and certifications inside this category without creating extra cards on your homepage.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setGdriveVerifyState({ loading: false, accessible: null });
+                            setEditingEntry({
+                              categoryKey: currentCategory.category || currentCategory.id,
+                              categoryTitle: currentCategory.title,
+                              entry: {
+                                id: `entry-${Date.now()}`,
+                                title: "",
+                                event_name: "",
+                                position_award: "",
+                                date: "",
+                                description: "",
+                                certificate_url: "",
+                                image: "",
+                              },
+                              isNew: true,
+                            });
+                          }}
+                          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#C7A46A] hover:bg-[#D8BC8A] text-[#151517] text-xs font-bold transition-all shadow-md"
+                        >
+                          <Plus size={15} />
+                          <span>Add First Entry</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ========================================================================= */}
         {/* SECTION C: CERTIFICATIONS */}
@@ -1498,162 +1833,279 @@ export default function AdminDashboardClient() {
       {/* ========================================================================= */}
       {/* EDIT ACHIEVEMENT MODAL */}
       {/* ========================================================================= */}
+      {/* EDIT / ADD ACHIEVEMENT ENTRY MODAL (INSIDE FIXED CATEGORY) */}
+      {/* ========================================================================= */}
       <AnimatePresence>
-        {editingAchievement && (
+        {editingEntry && (
           <div
             className="fixed inset-0 z-[1100] flex items-center justify-center p-4 bg-[#0B0B0C]/90 backdrop-blur-md overflow-y-auto"
-            onClick={() => setEditingAchievement(null)}
+            onClick={() => setEditingEntry(null)}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#151517] border border-[#302D28] rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative my-8"
+              className="bg-[#151517] border border-[#302D28] rounded-2xl p-6 sm:p-8 max-w-xl w-full shadow-2xl relative my-8"
             >
-              <h3 className="font-heading font-bold text-lg text-[#F4F0E8] mb-4">
-                {editingAchievement.isNew ? "Add Achievement" : "Edit Achievement"}
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <span className="text-[11px] font-bold text-[#C7A46A] uppercase tracking-wider">
+                    {editingEntry.categoryTitle}
+                  </span>
+                  <h3 className="font-heading font-bold text-lg text-[#F4F0E8] mt-0.5">
+                    {editingEntry.isNew ? "Add Achievement Entry" : "Edit Achievement Entry"}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditingEntry(null)}
+                  className="p-1.5 rounded-lg bg-[#202023] text-[#A7A198] hover:text-[#C7A46A] border border-[#302D28]"
+                >
+                  <X size={18} />
+                </button>
+              </div>
 
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   const f = e.currentTarget;
-                  const item: Achievement = {
-                    ...editingAchievement.item,
+                  const item: AchievementEntry = {
+                    ...editingEntry.entry,
                     title: (f.elements.namedItem("title") as HTMLInputElement).value,
                     event_name: (f.elements.namedItem("event_name") as HTMLInputElement).value,
                     position_award: (f.elements.namedItem("position_award") as HTMLInputElement).value,
                     date: (f.elements.namedItem("date") as HTMLInputElement).value,
-                    category: (f.elements.namedItem("category") as HTMLSelectElement).value,
                     description: (f.elements.namedItem("description") as HTMLTextAreaElement).value,
+                    certificate_url: (f.elements.namedItem("certificate_url") as HTMLInputElement).value,
                     image: (f.elements.namedItem("image") as HTMLInputElement).value,
-                    proof_document: (f.elements.namedItem("proof_document") as HTMLInputElement).value,
                   };
-                  saveAchievement(item, editingAchievement.isNew);
+                  saveCategoryEntry(editingEntry.categoryKey, item, editingEntry.isNew);
                 }}
                 className="space-y-4"
               >
-                <div>
-                  <label className="block text-xs font-semibold text-[#A7A198] mb-1">Title *</label>
-                  <input
-                    name="title"
-                    defaultValue={editingAchievement.item.title}
-                    required
-                    placeholder="e.g. 1st Place - Web Debugging"
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs sm:text-sm text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#A7A198] mb-1">Event / Competition *</label>
-                    <input
-                      name="event_name"
-                      defaultValue={editingAchievement.item.event_name}
-                      required
-                      placeholder="e.g. PSG CAS TechFest"
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs sm:text-sm text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#A7A198] mb-1">Award / Position</label>
-                    <input
-                      name="position_award"
-                      defaultValue={editingAchievement.item.position_award}
-                      placeholder="e.g. 🏆 1st Prize, Winner"
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs sm:text-sm text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#A7A198] mb-1">Date</label>
-                    <input
-                      name="date"
-                      defaultValue={editingAchievement.item.date}
-                      placeholder="e.g. 2025 - 2026 or Sep 2025"
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs sm:text-sm text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#A7A198] mb-1">Category</label>
-                    <select
-                      name="category"
-                      defaultValue={editingAchievement.item.category || "intercollege"}
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs sm:text-sm text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
-                    >
-                      <option value="intercollege">Inter-College Wins</option>
-                      <option value="events">College Wins (Internal)</option>
-                      <option value="hackathon">Hackathon Prizes</option>
-                      <option value="participations">Event Participations (Inside & Outside College)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#A7A198] mb-1">Description *</label>
-                  <textarea
-                    name="description"
-                    defaultValue={editingAchievement.item.description}
-                    required
-                    rows={3}
-                    placeholder="Brief description of the challenge and your performance..."
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs sm:text-sm text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
-                  />
-                </div>
-
-                {/* File Upload for Image / Proof */}
+                {/* Competition / Event Name */}
                 <div>
                   <label className="block text-xs font-semibold text-[#A7A198] mb-1">
-                    Upload Photo / Proof Document
+                    Competition or Event Name *
                   </label>
-                  <div className="flex items-center gap-2">
+                  <input
+                    name="title"
+                    defaultValue={editingEntry.entry.title}
+                    required
+                    placeholder="e.g. Web Debugging & Coding Contest, Smart India Hackathon"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#202023] border border-[#302D28] text-xs sm:text-sm text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
+                  />
+                </div>
+
+                {/* Event Host / Organizer & Position/Award */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#A7A198] mb-1">
+                      Organizer / Host College (Optional)
+                    </label>
                     <input
-                      type="file"
-                      id="ach-file-upload"
-                      className="hidden"
-                      accept="image/*,application/pdf"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const res = await handleFileUpload(file);
-                          if (res) {
-                            const imgInput = document.getElementById("ach-image-url") as HTMLInputElement;
-                            if (imgInput) imgInput.value = res.url;
-                          }
-                        }
-                      }}
-                    />
-                    <button
-                      type="button"
-                      disabled={uploadingFile}
-                      onClick={() => document.getElementById("ach-file-upload")?.click()}
-                      className="px-3.5 py-2 rounded-xl bg-[#202023] hover:bg-[#28282c] border border-[#302D28] text-xs font-semibold text-[#F4F0E8] flex items-center gap-2 shrink-0"
-                    >
-                      {uploadingFile ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                      Choose File
-                    </button>
-                    <input
-                      id="ach-image-url"
-                      name="image"
-                      defaultValue={editingAchievement.item.image}
-                      placeholder="File URL or /uploads/..."
-                      className="w-full px-3 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
+                      name="event_name"
+                      defaultValue={editingEntry.entry.event_name}
+                      placeholder="e.g. PSG CAS, IIT Madras, Dept. Symposium"
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs sm:text-sm text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
                     />
                   </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#A7A198] mb-1">
+                      Position, Prize, or Award
+                    </label>
+                    <input
+                      name="position_award"
+                      defaultValue={editingEntry.entry.position_award}
+                      placeholder="e.g. 🏆 1st Prize, Winner, Finalist"
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs sm:text-sm text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
+                    />
+                  </div>
+                </div>
+
+                {/* Date */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#A7A198] mb-1">
+                    Date
+                  </label>
                   <input
-                    type="hidden"
-                    name="proof_document"
-                    defaultValue={editingAchievement.item.proof_document}
+                    name="date"
+                    defaultValue={editingEntry.entry.date}
+                    placeholder="e.g. Feb 2025, 2024 - 2026"
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs sm:text-sm text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
                   />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#A7A198] mb-1">
+                    Description *
+                  </label>
+                  <textarea
+                    name="description"
+                    defaultValue={editingEntry.entry.description}
+                    required
+                    rows={3}
+                    placeholder="Describe the challenge solved, competition scale, or key performance highlight..."
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs sm:text-sm text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
+                  />
+                </div>
+
+                {/* Certificate / Google Drive Link */}
+                <div className="bg-[#202023] p-4 rounded-xl border border-[#302D28] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-[#F4F0E8]">
+                      Certificate / Proof (Google Drive Sharing Link or Upload)
+                    </label>
+                    <span className="text-[10px] text-[#C7A46A] font-semibold">
+                      Google Drive Supported
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="entry-cert-url"
+                        name="certificate_url"
+                        defaultValue={editingEntry.entry.certificate_url || editingEntry.entry.proof_document}
+                        placeholder="Paste Google Drive sharing link (e.g. https://drive.google.com/file/d/...)"
+                        onChange={(e) => verifyGoogleDriveLink(e.target.value)}
+                        onBlur={(e) => verifyGoogleDriveLink(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl bg-[#151517] border border-[#302D28] text-xs text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const val = (document.getElementById("entry-cert-url") as HTMLInputElement)?.value;
+                          verifyGoogleDriveLink(val);
+                        }}
+                        className="px-3 py-2 rounded-xl bg-[#151517] border border-[#302D28] hover:border-[#C7A46A] text-xs font-semibold text-[#F4F0E8] shrink-0"
+                      >
+                        Verify
+                      </button>
+                    </div>
+
+                    {/* Hidden Image input */}
+                    <input
+                      type="hidden"
+                      id="entry-image-url"
+                      name="image"
+                      defaultValue={editingEntry.entry.image}
+                    />
+
+                    {/* Direct File Upload button as alternative */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <input
+                        type="file"
+                        id="entry-file-upload"
+                        className="hidden"
+                        accept="image/*,application/pdf"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const res = await handleFileUpload(file);
+                            if (res) {
+                              const input = document.getElementById("entry-cert-url") as HTMLInputElement;
+                              if (input) input.value = res.url;
+                              const imgInput = document.getElementById("entry-image-url") as HTMLInputElement;
+                              if (imgInput && file.type.startsWith("image/")) imgInput.value = res.url;
+                              verifyGoogleDriveLink(res.url);
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        disabled={uploadingFile}
+                        onClick={() => document.getElementById("entry-file-upload")?.click()}
+                        className="px-3 py-1.5 rounded-lg bg-[#151517] hover:bg-[#28282c] border border-[#302D28] text-[11px] font-semibold text-[#A7A198] hover:text-[#F4F0E8] flex items-center gap-1.5"
+                      >
+                        {uploadingFile ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                        <span>Or upload file directly from PC</span>
+                      </button>
+                    </div>
+
+                    {/* Verification / Preview Box */}
+                    {gdriveVerifyState.loading && (
+                      <div className="flex items-center gap-2 text-xs text-[#C7A46A] p-2.5 rounded-lg bg-[#151517]">
+                        <Loader2 size={14} className="animate-spin" />
+                        <span>Verifying Google Drive link accessibility...</span>
+                      </div>
+                    )}
+
+                    {/* Restricted Warning */}
+                    {gdriveVerifyState.accessible === false && (
+                      <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-600/40 text-amber-200 text-xs space-y-1">
+                        <div className="flex items-center gap-2 font-bold text-amber-400">
+                          <AlertTriangle size={15} />
+                          <span>Google Drive Sharing Permission Required</span>
+                        </div>
+                        <p className="text-[11px] leading-relaxed">
+                          {gdriveVerifyState.hint ||
+                            "This link is private or restricted. In Google Drive, click 'Share' on this file, change 'General access' from 'Restricted' to 'Anyone with the link' (Viewer), then save."}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Verified Preview Display */}
+                    {(gdriveVerifyState.accessible || editingEntry.entry.certificate_url) && (
+                      <div className="p-3 rounded-xl bg-[#151517] border border-[#302D28] flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          {gdriveVerifyState.thumbnailUrl || editingEntry.entry.image ? (
+                            <img
+                              src={gdriveVerifyState.thumbnailUrl || resolveDisplayImageUrl(editingEntry.entry.image)}
+                              alt="Certificate preview"
+                              className="w-12 h-12 rounded-lg object-cover border border-[#302D28]"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-[#202023] flex items-center justify-center text-[#C7A46A]">
+                              <FileText size={20} />
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-xs font-semibold text-[#F4F0E8]">
+                              {gdriveVerifyState.fileType === "pdf"
+                                ? "PDF Document Verified"
+                                : gdriveVerifyState.fileType === "image"
+                                ? "Image Verified"
+                                : "Certificate Ready"}
+                            </p>
+                            <p className="text-[11px] text-[#A7A198]">
+                              Will display in your custom Certificate Viewer
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const val =
+                              (document.getElementById("entry-cert-url") as HTMLInputElement)?.value ||
+                              editingEntry.entry.certificate_url;
+                            if (val) {
+                              setTestCertModal({
+                                title: (document.querySelector('input[name="title"]') as HTMLInputElement)?.value || "Certificate",
+                                issuer: editingEntry.categoryTitle,
+                                description: (document.querySelector('textarea[name="description"]') as HTMLTextAreaElement)?.value || "",
+                                file_url: val,
+                              });
+                            }
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-[#202023] hover:bg-[#C7A46A] text-[#F4F0E8] hover:text-[#151517] border border-[#302D28] text-xs font-semibold transition-all shrink-0 flex items-center gap-1.5"
+                        >
+                          <Eye size={12} />
+                          <span>Test in Viewer</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-3 pt-3">
                   <button
                     type="button"
-                    onClick={() => setEditingAchievement(null)}
+                    onClick={() => setEditingEntry(null)}
                     className="w-1/2 py-2.5 rounded-xl bg-[#202023] border border-[#302D28] text-[#A7A198] text-xs font-semibold"
                   >
                     Cancel
@@ -1662,7 +2114,107 @@ export default function AdminDashboardClient() {
                     type="submit"
                     className="w-1/2 py-2.5 rounded-xl bg-[#C7A46A] hover:bg-[#D8BC8A] text-[#151517] text-xs font-bold transition-all shadow-md"
                   >
-                    Save Achievement
+                    Save Entry
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ========================================================================= */}
+      {/* EDIT CATEGORY OVERVIEW MODAL (TWEAK BADGE & DESCRIPTION) */}
+      {/* ========================================================================= */}
+      <AnimatePresence>
+        {editingCategoryOverview && (
+          <div
+            className="fixed inset-0 z-[1100] flex items-center justify-center p-4 bg-[#0B0B0C]/90 backdrop-blur-md overflow-y-auto"
+            onClick={() => setEditingCategoryOverview(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#151517] border border-[#302D28] rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative my-8"
+            >
+              <h3 className="font-heading font-bold text-lg text-[#F4F0E8] mb-1">
+                Edit Category Overview
+              </h3>
+              <p className="text-xs text-[#A7A198] mb-4">
+                Customize the high-level badge and description for <strong className="text-[#F4F0E8]">{editingCategoryOverview.title}</strong>.
+              </p>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const f = e.currentTarget;
+                  const item: AchievementCategory = {
+                    ...editingCategoryOverview,
+                    position_award: (f.elements.namedItem("position_award") as HTMLInputElement).value,
+                    event_name: (f.elements.namedItem("event_name") as HTMLInputElement).value,
+                    description: (f.elements.namedItem("description") as HTMLTextAreaElement).value,
+                  };
+                  saveCategoryOverview(item);
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="block text-xs font-semibold text-[#A7A198] mb-1">Category Name</label>
+                  <input
+                    value={editingCategoryOverview.title}
+                    disabled
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#202023]/60 border border-[#302D28] text-xs text-[#A7A198] cursor-not-allowed"
+                  />
+                  <p className="text-[10px] text-[#A7A198]/60 mt-1">Fixed parent category name cannot be altered.</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#A7A198] mb-1">Badge / Highlight</label>
+                    <input
+                      name="position_award"
+                      defaultValue={editingCategoryOverview.position_award}
+                      placeholder="e.g. 🏆 5+ Wins"
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs sm:text-sm text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#A7A198] mb-1">Scope / Subtitle</label>
+                    <input
+                      name="event_name"
+                      defaultValue={editingCategoryOverview.event_name}
+                      placeholder="e.g. Various Institutions"
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs sm:text-sm text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#A7A198] mb-1">Category Description *</label>
+                  <textarea
+                    name="description"
+                    defaultValue={editingCategoryOverview.description}
+                    required
+                    rows={3}
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs sm:text-sm text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => setEditingCategoryOverview(null)}
+                    className="w-1/2 py-2.5 rounded-xl bg-[#202023] border border-[#302D28] text-[#A7A198] text-xs font-semibold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="w-1/2 py-2.5 rounded-xl bg-[#C7A46A] hover:bg-[#D8BC8A] text-[#151517] text-xs font-bold transition-all shadow-md"
+                  >
+                    Save Overview
                   </button>
                 </div>
               </form>
@@ -1761,44 +2313,143 @@ export default function AdminDashboardClient() {
                   />
                 </div>
 
-                {/* Upload Certificate PDF or Image */}
-                <div>
-                  <label className="block text-xs font-semibold text-[#A7A198] mb-1">
-                    Upload Certificate File (PDF / Image)
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="file"
-                      id="cert-file-upload"
-                      className="hidden"
-                      accept="application/pdf,image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const res = await handleFileUpload(file);
-                          if (res) {
-                            const input = document.getElementById("cert-file-url") as HTMLInputElement;
-                            if (input) input.value = res.url;
+                {/* Certificate File or Google Drive Link */}
+                <div className="bg-[#202023] p-4 rounded-xl border border-[#302D28] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-[#F4F0E8]">
+                      Certificate Document (Google Drive Link or Upload)
+                    </label>
+                    <span className="text-[10px] text-[#C7A46A] font-semibold">
+                      Google Drive Supported
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="cert-file-url"
+                        name="file_url"
+                        defaultValue={editingCertification.item.file_url}
+                        placeholder="Paste Google Drive sharing link (e.g. https://drive.google.com/file/d/...) or URL"
+                        onChange={(e) => verifyGoogleDriveLink(e.target.value)}
+                        onBlur={(e) => verifyGoogleDriveLink(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl bg-[#151517] border border-[#302D28] text-xs text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const val = (document.getElementById("cert-file-url") as HTMLInputElement)?.value;
+                          verifyGoogleDriveLink(val);
+                        }}
+                        className="px-3 py-2 rounded-xl bg-[#151517] border border-[#302D28] hover:border-[#C7A46A] text-xs font-semibold text-[#F4F0E8] shrink-0"
+                      >
+                        Verify
+                      </button>
+                    </div>
+
+                    {/* Direct File Upload button as alternative */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <input
+                        type="file"
+                        id="cert-file-upload"
+                        className="hidden"
+                        accept="application/pdf,image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const res = await handleFileUpload(file);
+                            if (res) {
+                              const input = document.getElementById("cert-file-url") as HTMLInputElement;
+                              if (input) input.value = res.url;
+                              verifyGoogleDriveLink(res.url);
+                            }
                           }
-                        }
-                      }}
-                    />
-                    <button
-                      type="button"
-                      disabled={uploadingFile}
-                      onClick={() => document.getElementById("cert-file-upload")?.click()}
-                      className="px-3.5 py-2 rounded-xl bg-[#202023] hover:bg-[#28282c] border border-[#302D28] text-xs font-semibold text-[#F4F0E8] flex items-center gap-2 shrink-0"
-                    >
-                      {uploadingFile ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                      Upload File
-                    </button>
-                    <input
-                      id="cert-file-url"
-                      name="file_url"
-                      defaultValue={editingCertification.item.file_url}
-                      placeholder="/uploads/... or external URL"
-                      className="w-full px-3 py-2 rounded-xl bg-[#202023] border border-[#302D28] text-xs text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A]"
-                    />
+                        }}
+                      />
+                      <button
+                        type="button"
+                        disabled={uploadingFile}
+                        onClick={() => document.getElementById("cert-file-upload")?.click()}
+                        className="px-3 py-1.5 rounded-lg bg-[#151517] hover:bg-[#28282c] border border-[#302D28] text-[11px] font-semibold text-[#A7A198] hover:text-[#F4F0E8] flex items-center gap-1.5"
+                      >
+                        {uploadingFile ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                        <span>Or upload PDF/Image directly from PC</span>
+                      </button>
+                    </div>
+
+                    {/* Verification / Loading */}
+                    {gdriveVerifyState.loading && (
+                      <div className="flex items-center gap-2 text-xs text-[#C7A46A] p-2.5 rounded-lg bg-[#151517]">
+                        <Loader2 size={14} className="animate-spin" />
+                        <span>Verifying Google Drive link accessibility...</span>
+                      </div>
+                    )}
+
+                    {/* Restricted Warning */}
+                    {gdriveVerifyState.accessible === false && (
+                      <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-600/40 text-amber-200 text-xs space-y-1">
+                        <div className="flex items-center gap-2 font-bold text-amber-400">
+                          <AlertTriangle size={15} />
+                          <span>Google Drive Sharing Permission Required</span>
+                        </div>
+                        <p className="text-[11px] leading-relaxed">
+                          {gdriveVerifyState.hint ||
+                            "This link is private or restricted. In Google Drive, click 'Share' on this file, change 'General access' from 'Restricted' to 'Anyone with the link' (Viewer), then save."}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Verified Preview Display */}
+                    {(gdriveVerifyState.accessible || editingCertification.item.file_url) && (
+                      <div className="p-3 rounded-xl bg-[#151517] border border-[#302D28] flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          {gdriveVerifyState.thumbnailUrl ? (
+                            <img
+                              src={gdriveVerifyState.thumbnailUrl}
+                              alt="Certificate thumbnail"
+                              className="w-12 h-12 rounded-lg object-cover border border-[#302D28]"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-[#202023] flex items-center justify-center text-[#C7A46A]">
+                              <FileText size={20} />
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-xs font-semibold text-[#F4F0E8]">
+                              {gdriveVerifyState.fileType === "pdf"
+                                ? "PDF Certificate Ready"
+                                : gdriveVerifyState.fileType === "image"
+                                ? "Image Certificate Ready"
+                                : "Certificate Document Ready"}
+                            </p>
+                            <p className="text-[11px] text-[#A7A198]">
+                              Will display in your custom Certificate Viewer
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const val =
+                              (document.getElementById("cert-file-url") as HTMLInputElement)?.value ||
+                              editingCertification.item.file_url;
+                            if (val) {
+                              setTestCertModal({
+                                title: (document.querySelector('input[name="title"]') as HTMLInputElement)?.value || "Certificate",
+                                issuer: (document.querySelector('input[name="issuer"]') as HTMLInputElement)?.value || "Issuer",
+                                description: (document.querySelector('textarea[name="description"]') as HTMLTextAreaElement)?.value || "",
+                                file_url: val,
+                              });
+                            }
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-[#202023] hover:bg-[#C7A46A] text-[#F4F0E8] hover:text-[#151517] border border-[#302D28] text-xs font-semibold transition-all shrink-0 flex items-center gap-1.5"
+                        >
+                          <Eye size={12} />
+                          <span>Test in Custom Viewer</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 

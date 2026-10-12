@@ -9,18 +9,33 @@ export interface SkillCategory {
   skills: string[];
 }
 
-export interface Achievement {
+export interface AchievementEntry {
+  id: string;
+  title: string;              // Competition or event name
+  event_name?: string;        // Optional organizer or institution
+  position_award?: string;    // Position, prize, or award (e.g. 🏆 1st Prize, Winner)
+  date?: string;              // Date (e.g. 2025 - 2026 or Feb 2025)
+  description: string;        // Description of entry / challenge
+  certificate_url?: string;   // Google Drive link or uploaded file URL
+  image?: string;             // Thumbnail / preview URL
+  proof_document?: string;    // Direct proof document URL
+}
+
+export interface AchievementCategory {
   id: string;
   title: string;
-  event_name: string;
+  event_name?: string;
   description: string;
-  position_award: string;
-  date: string;
-  category: string;
+  position_award?: string;
+  date?: string;
+  category: "intercollege" | "events" | "hackathon" | "participations" | string;
   icon?: string;
   image?: string;
   proof_document?: string;
+  entries: AchievementEntry[];
 }
+
+export type Achievement = AchievementCategory;
 
 export interface Certification {
   id: string;
@@ -55,6 +70,123 @@ export interface PortfolioData {
   projects: Project[];
 }
 
+export const FIXED_ACHIEVEMENT_CATEGORIES = [
+  {
+    id: "ach-1",
+    category: "intercollege",
+    title: "Inter-College Wins",
+    subtitle: "Various Institutions",
+    icon: "Trophy",
+    defaultHighlight: "🏆 5+ Wins",
+    defaultDescription:
+      "Successfully competed and secured top positions in symposiums and technical fests held at various reputed colleges.",
+  },
+  {
+    id: "ach-2",
+    category: "events",
+    title: "College Wins",
+    subtitle: "PSG CAS (Internal)",
+    icon: "Award",
+    defaultHighlight: "🏆 5+ Wins",
+    defaultDescription:
+      "Consistent performance in intra-college events, spanning debugging, logic-building, and technical paper presentations.",
+  },
+  {
+    id: "ach-3",
+    category: "hackathon",
+    title: "Hackathon Prizes",
+    subtitle: "Innovation & Coding",
+    icon: "Zap",
+    defaultHighlight: "Podium Finishes",
+    defaultDescription:
+      "Building functional prototypes and solving real-world problems under pressure. Secured multiple podium finishes.",
+  },
+  {
+    id: "ach-4",
+    category: "participations",
+    title: "Event Participations",
+    subtitle: "Inside & Outside College",
+    icon: "Award",
+    defaultHighlight: "📜 Participations",
+    defaultDescription:
+      "Active participation across technical symposiums, workshops, coding contests, and conferences spanning multiple institutions.",
+  },
+] as const;
+
+/**
+ * Normalizes portfolio data to guarantee the four fixed achievement parent categories
+ * exist with their individual entries preserved inside them.
+ */
+export function normalizePortfolioData(raw: PortfolioData): PortfolioData {
+  const normalized: PortfolioData = {
+    skills: Array.isArray(raw.skills) ? raw.skills : [],
+    achievements: [],
+    certifications: Array.isArray(raw.certifications) ? raw.certifications : [],
+    projects: Array.isArray(raw.projects) ? raw.projects : [],
+  };
+
+  const rawAchs = Array.isArray(raw.achievements) ? raw.achievements : [];
+
+  // Group any standalone entries by category if present
+  const categoryEntriesMap = new Map<string, AchievementEntry[]>();
+  FIXED_ACHIEVEMENT_CATEGORIES.forEach((cat) => {
+    categoryEntriesMap.set(cat.category, []);
+  });
+
+  // Find existing category objects or standalone entries
+  const existingCategoriesMap = new Map<string, any>();
+
+  for (const item of rawAchs) {
+    const catKey = item.category || "intercollege";
+    const isParentCategory = FIXED_ACHIEVEMENT_CATEGORIES.some(
+      (c) => c.id === item.id || (c.category === item.category && !item.entries)
+    );
+
+    if (isParentCategory && !existingCategoriesMap.has(catKey)) {
+      existingCategoriesMap.set(catKey, item);
+      if (Array.isArray(item.entries)) {
+        categoryEntriesMap.get(catKey)?.push(...item.entries);
+      }
+    } else {
+      // Standalone achievement entry - preserve it inside this category's entries!
+      const entry: AchievementEntry = {
+        id: item.id || `entry-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        title: item.title || item.event_name || "Untitled Entry",
+        event_name: item.event_name,
+        position_award: item.position_award,
+        date: item.date,
+        description: item.description || "",
+        certificate_url: item.proof_document || item.image || (item as any).certificate_url || "",
+        image: item.image,
+        proof_document: item.proof_document,
+      };
+      categoryEntriesMap.get(catKey)?.push(entry);
+    }
+  }
+
+  // Construct the exactly four parent categories
+  for (const def of FIXED_ACHIEVEMENT_CATEGORIES) {
+    const existing = existingCategoriesMap.get(def.category);
+    const entries = categoryEntriesMap.get(def.category) || [];
+
+    normalized.achievements.push({
+      id: def.id,
+      category: def.category,
+      title: def.title, // Fixed category title
+      event_name: existing?.event_name || def.subtitle,
+      description: existing?.description || def.defaultDescription,
+      position_award: existing?.position_award || def.defaultHighlight,
+      date: existing?.date || "2024 - 2026",
+      icon: def.icon,
+      image: existing?.image || "",
+      proof_document: existing?.proof_document || "",
+      entries,
+    });
+  }
+
+  return normalized;
+}
+
 const DATA_DIR = path.join(process.cwd(), "data");
 const PUBLISHED_FILE = path.join(DATA_DIR, "portfolio-published.json");
 const DRAFT_FILE = path.join(DATA_DIR, "portfolio-draft.json");
@@ -62,39 +194,37 @@ const DRAFT_FILE = path.join(DATA_DIR, "portfolio-draft.json");
 export function getPortfolioData(preview = false): PortfolioData {
   try {
     const isDev = process.env.NODE_ENV === "development";
-    // In production or on Vercel, always use published data
-    const targetFile = (preview && isDev && fs.existsSync(DRAFT_FILE)) ? DRAFT_FILE : PUBLISHED_FILE;
+    const targetFile = preview && isDev && fs.existsSync(DRAFT_FILE) ? DRAFT_FILE : PUBLISHED_FILE;
 
     if (fs.existsSync(targetFile)) {
       const raw = fs.readFileSync(targetFile, "utf-8");
-      return JSON.parse(raw);
+      return normalizePortfolioData(JSON.parse(raw));
     }
   } catch (err) {
     console.error("Error reading portfolio data:", err);
   }
 
-  // Fallback to published file if draft fails
   if (fs.existsSync(PUBLISHED_FILE)) {
     try {
       const raw = fs.readFileSync(PUBLISHED_FILE, "utf-8");
-      return JSON.parse(raw);
+      return normalizePortfolioData(JSON.parse(raw));
     } catch (e) {
       console.error("Error reading published fallback:", e);
     }
   }
 
-  return {
+  return normalizePortfolioData({
     skills: [],
     achievements: [],
     certifications: [],
     projects: [],
-  };
+  });
 }
 
 export function getDraftPortfolioData(): PortfolioData {
   if (fs.existsSync(DRAFT_FILE)) {
     try {
-      return JSON.parse(fs.readFileSync(DRAFT_FILE, "utf-8"));
+      return normalizePortfolioData(JSON.parse(fs.readFileSync(DRAFT_FILE, "utf-8")));
     } catch (e) {
       console.error("Error reading draft:", e);
     }
@@ -110,13 +240,15 @@ export function saveDraftPortfolioData(data: PortfolioData): void {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
   }
-  fs.writeFileSync(DRAFT_FILE, JSON.stringify(data, null, 2), "utf-8");
+  const normalized = normalizePortfolioData(data);
+  fs.writeFileSync(DRAFT_FILE, JSON.stringify(normalized, null, 2), "utf-8");
 }
 
 export function revertDraftToPublished(): void {
   if (fs.existsSync(PUBLISHED_FILE)) {
     const raw = fs.readFileSync(PUBLISHED_FILE, "utf-8");
-    fs.writeFileSync(DRAFT_FILE, raw, "utf-8");
+    const normalized = normalizePortfolioData(JSON.parse(raw));
+    fs.writeFileSync(DRAFT_FILE, JSON.stringify(normalized, null, 2), "utf-8");
   }
 }
 
@@ -137,9 +269,18 @@ export function validatePortfolioData(data: PortfolioData): { valid: boolean; er
   if (!Array.isArray(data.achievements)) {
     errors.push("Achievements must be an array");
   } else {
-    data.achievements.forEach((ach, idx) => {
-      if (!ach.title?.trim()) errors.push(`Achievement #${idx + 1} is missing a title`);
-      if (!ach.description?.trim()) errors.push(`Achievement "${ach.title || idx + 1}" is missing a description`);
+    if (data.achievements.length !== 4) {
+      errors.push("Achievements must contain exactly the 4 fixed categories");
+    }
+    data.achievements.forEach((ach) => {
+      if (!ach.title?.trim()) errors.push(`Achievement category "${ach.id}" is missing a title`);
+      if (Array.isArray(ach.entries)) {
+        ach.entries.forEach((entry, eIdx) => {
+          if (!entry.title?.trim()) {
+            errors.push(`Entry #${eIdx + 1} in "${ach.title}" is missing a competition/event name`);
+          }
+        });
+      }
     });
   }
 
@@ -210,38 +351,63 @@ export function computeDiff(draft: PortfolioData, published: PortfolioData): Dif
     }
   }
 
-  // Achievements
-  const pubAchMap = new Map(published.achievements.map((a) => [a.id, a]));
-  const draftAchMap = new Map(draft.achievements.map((a) => [a.id, a]));
+  // Achievements & Category Entries
+  const pubAchMap = new Map(published.achievements.map((a) => [a.category, a]));
+  const draftAchMap = new Map(draft.achievements.map((a) => [a.category, a]));
 
   for (const a of draft.achievements) {
-    if (!pubAchMap.has(a.id)) {
-      diffs.push({
-        section: "achievements",
-        action: "added",
-        identifier: a.title,
-        details: `New achievement: ${a.position_award || a.event_name}`,
-      });
-    } else {
-      const pub = pubAchMap.get(a.id)!;
-      if (JSON.stringify(pub) !== JSON.stringify(a)) {
+    const pub = pubAchMap.get(a.category);
+    if (!pub) continue;
+
+    // Check entry changes
+    const draftEntries = Array.isArray(a.entries) ? a.entries : [];
+    const pubEntries = Array.isArray(pub.entries) ? pub.entries : [];
+    const pubEntryMap = new Map(pubEntries.map((e) => [e.id, e]));
+    const draftEntryMap = new Map(draftEntries.map((e) => [e.id, e]));
+
+    for (const entry of draftEntries) {
+      if (!pubEntryMap.has(entry.id)) {
         diffs.push({
           section: "achievements",
-          action: "modified",
-          identifier: a.title,
-          details: `Updated details or image/proof`,
+          action: "added",
+          identifier: `${a.title} → ${entry.title}`,
+          details: `Added new entry (${entry.position_award || "Award"})`,
+        });
+      } else {
+        const pubE = pubEntryMap.get(entry.id)!;
+        if (JSON.stringify(pubE) !== JSON.stringify(entry)) {
+          diffs.push({
+            section: "achievements",
+            action: "modified",
+            identifier: `${a.title} → ${entry.title}`,
+            details: `Updated entry details/proof`,
+          });
+        }
+      }
+    }
+
+    for (const pubE of pubEntries) {
+      if (!draftEntryMap.has(pubE.id)) {
+        diffs.push({
+          section: "achievements",
+          action: "deleted",
+          identifier: `${a.title} → ${pubE.title}`,
+          details: `Deleted entry from ${a.title}`,
         });
       }
     }
-  }
 
-  for (const a of published.achievements) {
-    if (!draftAchMap.has(a.id)) {
+    // Check category overview changes
+    if (
+      a.description !== pub.description ||
+      a.position_award !== pub.position_award ||
+      a.event_name !== pub.event_name
+    ) {
       diffs.push({
         section: "achievements",
-        action: "deleted",
+        action: "modified",
         identifier: a.title,
-        details: `Deleted achievement`,
+        details: `Updated category overview badge or description`,
       });
     }
   }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { extractGoogleDriveFileId } from "@/lib/google-drive";
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
@@ -11,12 +12,10 @@ export async function GET(req: NextRequest) {
   let targetUrl = rawUrl.trim();
 
   // If it's a Google Drive link, resolve to direct download URL
-  const gDriveFileMatch = targetUrl.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i);
-  const gDriveIdMatch = targetUrl.match(/drive\.google\.com\/(?:open|uc)\?(?:.*&)?id=([a-zA-Z0-9_-]+)/i);
-  const fileId = (gDriveFileMatch && gDriveFileMatch[1]) || (gDriveIdMatch && gDriveIdMatch[1]);
-
+  const fileId = extractGoogleDriveFileId(targetUrl);
   if (fileId) {
-    targetUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+    // We add &confirm=t so Google Drive bypasses large file confirmation prompt
+    targetUrl = `https://drive.google.com/uc?export=download&confirm=t&id=${fileId}`;
   }
 
   try {
@@ -28,9 +27,22 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    const finalUrl = response.url || "";
+    // If redirected to login page
+    if (finalUrl.includes("accounts.google.com") || finalUrl.includes("ServiceLogin")) {
+      return NextResponse.json(
+        {
+          error:
+            "This Google Drive file is private/restricted. Please open Google Drive, click Share, and set General Access to 'Anyone with the link' (Viewer).",
+          isPermissionError: true,
+        },
+        { status: 403 }
+      );
+    }
+
     if (!response.ok) {
       return NextResponse.json(
-        { error: `Upstream returned status ${response.status}` },
+        { error: `Upstream server returned status ${response.status}` },
         { status: response.status }
       );
     }
