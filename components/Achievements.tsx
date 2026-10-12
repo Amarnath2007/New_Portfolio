@@ -28,7 +28,7 @@ const defaultAchievements = [
   {
     icon: Trophy,
     title: "Inter-College Wins",
-    highlight: "🏆 Wins",
+    highlight: "🏆5+ Wins",
     subtitle: "Various Institutions",
     category: "intercollege",
     description:
@@ -37,7 +37,7 @@ const defaultAchievements = [
   {
     icon: Award,
     title: "College Wins",
-    highlight: "🏆 Wins",
+    highlight: "🏆5+ Wins",
     subtitle: "PSG CAS (Internal)",
     category: "events",
     description:
