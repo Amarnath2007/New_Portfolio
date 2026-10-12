@@ -77,7 +77,7 @@ export const FIXED_ACHIEVEMENT_CATEGORIES = [
     title: "Inter-College Wins",
     subtitle: "Various Institutions",
     icon: "Trophy",
-    defaultHighlight: "🏆5+ Wins",
+    defaultHighlight: "🏆 5+ Wins",
     defaultDescription:
       "Successfully competed and secured top positions in symposiums and technical fests held at various reputed colleges.",
   },
@@ -87,7 +87,7 @@ export const FIXED_ACHIEVEMENT_CATEGORIES = [
     title: "College Wins",
     subtitle: "PSG CAS (Internal)",
     icon: "Award",
-    defaultHighlight: "🏆5+ Wins",
+    defaultHighlight: "🏆 5+ Wins",
     defaultDescription:
       "Consistent performance in intra-college events, spanning debugging, logic-building, and technical paper presentations.",
   },
@@ -97,9 +97,9 @@ export const FIXED_ACHIEVEMENT_CATEGORIES = [
     title: "Hackathon Prizes",
     subtitle: "Innovation & Coding",
     icon: "Zap",
-    defaultHighlight: "Podium Finishes",
+    defaultHighlight: "",
     defaultDescription:
-      "Building functional prototypes and solving real-world problems under pressure. Secured multiple podium finishes.",
+      "Building functional prototypes and solving real-world problems under pressure.",
   },
   {
     id: "ach-4",

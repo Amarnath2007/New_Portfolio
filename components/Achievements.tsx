@@ -28,7 +28,7 @@ const defaultAchievements = [
   {
     icon: Trophy,
     title: "Inter-College Wins",
-    highlight: "🏆5+ Wins",
+    highlight: "🏆 5+ Wins",
     subtitle: "Various Institutions",
     category: "intercollege",
     description:
@@ -37,7 +37,7 @@ const defaultAchievements = [
   {
     icon: Award,
     title: "College Wins",
-    highlight: "🏆5+ Wins",
+    highlight: "🏆 5+ Wins",
     subtitle: "PSG CAS (Internal)",
     category: "events",
     description:
@@ -46,11 +46,11 @@ const defaultAchievements = [
   {
     icon: Zap,
     title: "Hackathon Prizes",
-    highlight: "Podium Finishes",
+    highlight: "",
     subtitle: "Innovation & Coding",
     category: "hackathon",
     description:
-      "Building functional prototypes and solving real-world problems under pressure. Secured multiple podium finishes.",
+      "Building functional prototypes and solving real-world problems under pressure.",
   },
   {
     icon: Award,
@@ -94,9 +94,9 @@ export default function Achievements({ data }: AchievementsProps) {
         <div className={`grid ${items.length <= 3 ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-6xl" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 max-w-7xl"} gap-5 lg:gap-6 mx-auto`}>
           {items.map((item: any, i: number) => {
             const Icon = resolveAchievementIcon(item.icon);
-            // Clean badge: never display numerical counts or entry quantities
+            // Badge highlight text
             const rawBadge = item.highlight || item.position_award || "";
-            const badge = rawBadge.replace(/\b\d+\+?\s*/g, "").replace(/\(\d+\)/g, "").trim();
+            const badge = rawBadge.trim();
             const subtitleText = item.subtitle || item.event_name;
             const targetCategory = item.category || "intercollege";
 
