@@ -77,7 +77,10 @@
         "Antigravity",
         "NotebookLM",
         "Napkin AI",
-        "Canva"
+        "Canva",
+        "Cursor",
+        "Replit",
+        "Lovable"
       ]
     }
   ],
@@ -93,7 +96,28 @@
       "icon": "Trophy",
       "image": "",
       "proof_document": "",
-      "entries": []
+      "entries": [
+        {
+          "id": "entry-1791879107633",
+          "title": "IPL Aucion",
+          "event_name": "SNS X E-CELL IIT Bombay",
+          "position_award": "3rd",
+          "date": "4th Sept 2026",
+          "description": "The IPL Auction is a fast-paced sports simulation where teams use virtual budgets to bid on cricket players. It builds essential business skills like strategic budgeting, real-time negotiation, and data analysis under pressure.",
+          "certificate_url": "https://drive.google.com/file/d/1IdlpeM9ZEX70tfxu0eC8eEe5P-eyw7Kx/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1791879438955",
+          "title": "Case Study Competition",
+          "event_name": "SNS X E-CELL IIT Bombay",
+          "position_award": "3rd",
+          "date": "4th Sept 2026",
+          "description": "A case study competition challenges teams to solve real-world business problems under tight deadlines. Participants analyze complex scenarios, develop data-driven strategies, and present solutions to expert judges, showcasing their critical thinking, teamwork, and presentation skills.",
+          "certificate_url": "https://drive.google.com/file/d/1dH82C4QmWLdAMipCajdvb-nhW5DSupLZ/view?usp=sharing",
+          "image": ""
+        }
+      ]
     },
     {
       "id": "ach-2",
