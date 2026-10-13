@@ -101,7 +101,7 @@
           "id": "entry-1791879107633",
           "title": "IPL Aucion",
           "event_name": "SNS X E-CELL IIT Bombay",
-          "position_award": "3rd",
+          "position_award": "3rd Prize",
           "date": "4th Sept 2026",
           "description": "The IPL Auction is a fast-paced sports simulation where teams use virtual budgets to bid on cricket players. It builds essential business skills like strategic budgeting, real-time negotiation, and data analysis under pressure.",
           "certificate_url": "https://drive.google.com/file/d/1IdlpeM9ZEX70tfxu0eC8eEe5P-eyw7Kx/view?usp=sharing",
@@ -111,7 +111,7 @@
           "id": "entry-1791879438955",
           "title": "Case Study Competition",
           "event_name": "SNS X E-CELL IIT Bombay",
-          "position_award": "3rd",
+          "position_award": "3rd Prize",
           "date": "4th Sept 2026",
           "description": "A case study competition challenges teams to solve real-world business problems under tight deadlines. Participants analyze complex scenarios, develop data-driven strategies, and present solutions to expert judges, showcasing their critical thinking, teamwork, and presentation skills.",
           "certificate_url": "https://drive.google.com/file/d/1dH82C4QmWLdAMipCajdvb-nhW5DSupLZ/view?usp=sharing",
@@ -130,7 +130,78 @@
       "icon": "Award",
       "image": "",
       "proof_document": "",
-      "entries": []
+      "entries": [
+        {
+          "id": "entry-1791880249227",
+          "title": "Byte Quest",
+          "event_name": "PSG CAS",
+          "position_award": "2nd Prize",
+          "date": "16th Sept 2025",
+          "description": "A fast-paced race to find, diagnose, and fix bugs in broken code before time runs out.",
+          "certificate_url": "https://drive.google.com/file/d/18cCeKwn7NeNXY8KTPZEGjPDJxkuowlf3/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1791880400546",
+          "title": "Code Quest",
+          "event_name": "PSG CAS",
+          "position_award": "1st Prize",
+          "date": "10th Sept 2026",
+          "description": "Showcase our programming skills, solve challenging logic problems, and race against the clock to win.",
+          "certificate_url": "https://drive.google.com/file/d/1uDfc-B5Ix_Yd_XyTHCrW9hip7NavZ-Vq/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1791880505011",
+          "title": "Code Relay",
+          "event_name": "PSG CAS",
+          "position_award": "1st Prize",
+          "date": "6th Jan 2026",
+          "description": "A team coding competition where participants take turns writing and debugging the same codebase.",
+          "certificate_url": "https://drive.google.com/file/d/1xy9cMowL3JKW07YiAk4S2-nMy_QegCf0/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1791880722214",
+          "title": "Netronics- Idea Pitching",
+          "event_name": "PSG CAS",
+          "position_award": "1st Prize",
+          "date": "26th Aug 2025",
+          "description": "A concise, high-impact hook explaining the target problem, the core solution, and the unique value delivered.",
+          "certificate_url": "https://drive.google.com/file/d/1lhSVV468rScFyMgLXs7X6-gojy-jGKJ7/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1791880795509",
+          "title": "Pitch Fest",
+          "event_name": "PSG CAS",
+          "position_award": "2nd Prize",
+          "date": "5th Feb 2026",
+          "description": "A crisp, persuasive presentation designed to sell your business concept to investors in minutes.",
+          "certificate_url": "https://drive.google.com/file/d/1dewTr0ia8NtQww043-A8zN_Gkoi6AgRY/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1791880904467",
+          "title": "Prompt Engineering",
+          "event_name": "PSG CAS",
+          "position_award": "1st Prize",
+          "date": "6th Jan 2026",
+          "description": "Showcasing our AI creativity in this fast-paced competition to build the ultimate prompts",
+          "certificate_url": "https://drive.google.com/file/d/1EP6LTm4tMDq6a3wV5h-xUJZ1aa-uEwyi/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1791881015578",
+          "title": "DigiBytes",
+          "event_name": "PSG CAS",
+          "position_award": "1st Prize",
+          "date": "8th Jan 2026",
+          "description": "Showcasing my technical knowledge and coding skills in the ultimate trivia and programming challenge!",
+          "certificate_url": "https://drive.google.com/file/d/1xNQ9tXZmCczCwdbfWIVTIs2iwHXX4aPY/view?usp=sharing",
+          "image": ""
+        }
+      ]
     },
     {
       "id": "ach-3",
