@@ -214,7 +214,28 @@
       "icon": "Zap",
       "image": "",
       "proof_document": "",
-      "entries": []
+      "entries": [
+        {
+          "id": "entry-1791881976465",
+          "title": "HackVerse",
+          "event_name": "PSG CAS",
+          "position_award": "2nd Prize",
+          "date": "11-12th Feb 2026",
+          "description": "It is an intensive, two-day event where we build functioning software prototypes, solving the given problem challenges.",
+          "certificate_url": "https://drive.google.com/file/d/15dqjjWIIrt2viz3QfkkgRJhCljyoZxn7/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1791882524804",
+          "title": "Hackathon 10.0",
+          "event_name": "SRM Institute of Science and Technology, kattankulathur",
+          "position_award": "Finalists - Top 10",
+          "date": "17-18th April 2026",
+          "description": "It is an intensive 36-hour innovation challenge where shortlisted teams collaborate continuously to transform ideas into working prototypes, demonstrating technical expertise, creativity, teamwork, and problem-solving under pressure. (Over 150 teams participated)",
+          "certificate_url": "https://drive.google.com/file/d/1vsk0sgvYMIi8KjiwzpSeeuWyJpgT8REt/view?usp=sharing",
+          "image": ""
+        }
+      ]
     },
     {
       "id": "ach-4",
