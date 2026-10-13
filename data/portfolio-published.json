@@ -98,13 +98,13 @@
       "proof_document": "",
       "entries": [
         {
-          "id": "entry-1791879107633",
-          "title": "IPL Aucion",
-          "event_name": "SNS X E-CELL IIT Bombay",
-          "position_award": "3rd Prize",
-          "date": "4th Sept 2026",
-          "description": "The IPL Auction is a fast-paced sports simulation where teams use virtual budgets to bid on cricket players. It builds essential business skills like strategic budgeting, real-time negotiation, and data analysis under pressure.",
-          "certificate_url": "https://drive.google.com/file/d/1IdlpeM9ZEX70tfxu0eC8eEe5P-eyw7Kx/view?usp=sharing",
+          "id": "entry-1791887213526",
+          "title": "Bug Busters",
+          "event_name": "HI CAS",
+          "position_award": "1st Prize",
+          "date": "3rd March 2026",
+          "description": "It is a competition where participants detect, debug, and fix software errors, organized by the Department of Data Science & Analytics, HI CAS",
+          "certificate_url": "https://drive.google.com/file/d/1sRKjDWIxwSrPnJ4rAg6TmmLAS5K7dhDg/view?usp=sharing",
           "image": ""
         },
         {
@@ -115,6 +115,56 @@
           "date": "4th Sept 2026",
           "description": "A case study competition challenges teams to solve real-world business problems under tight deadlines. Participants analyze complex scenarios, develop data-driven strategies, and present solutions to expert judges, showcasing their critical thinking, teamwork, and presentation skills.",
           "certificate_url": "https://drive.google.com/file/d/1dH82C4QmWLdAMipCajdvb-nhW5DSupLZ/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1791887413618",
+          "title": "Debugging-Techno Fest",
+          "event_name": "Sri Ramakrishna College of Arts & Science",
+          "position_award": "1st Prize",
+          "date": "5th December 2026",
+          "description": "Tests our debugging skills against the clock, organized by the Department of Information Technology, SR CAS",
+          "certificate_url": "https://drive.google.com/file/d/1pxfpXJo0ttIffcpDlrXRToKSt26Pc8F2/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1791879107633",
+          "title": "IPL Aucion",
+          "event_name": "SNS X E-CELL IIT Bombay",
+          "position_award": "3rd Prize",
+          "date": "4th Sept 2026",
+          "description": "The IPL Auction is a fast-paced sports simulation where teams use virtual budgets to bid on cricket players. It builds essential business skills like strategic budgeting, real-time negotiation, and data analysis under pressure.",
+          "certificate_url": "https://drive.google.com/file/d/1IdlpeM9ZEX70tfxu0eC8eEe5P-eyw7Kx/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1791887610827",
+          "title": "Debugging- Spyder",
+          "event_name": "HI CAS",
+          "position_award": "1st Prize",
+          "date": "9th March 2026",
+          "description": "Tests the debugging skills in programming languages like C, C++, Python and Java, organized by the Department of Information Technology ",
+          "certificate_url": "https://drive.google.com/file/d/12YPhyDmcTUx-6_qQtg0wPCExnEzsazMM/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1791887818617",
+          "title": "Prompt Battle",
+          "event_name": "PSG iTech",
+          "position_award": "4th Prize",
+          "date": "21st Feb 2026",
+          "description": "A Prompt Battle is a live, multiple-round competition where creators race to generate the images , document and design a website using efficient prompting technique",
+          "certificate_url": "https://drive.google.com/file/d/1iUwnvL9BR9dwCY6-j0ukMyKv_tL2xUgn/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1791887988051",
+          "title": "Debugging- MIRARI'26",
+          "event_name": "Dr. SNS Rajalakshmi College of Arts & Science",
+          "position_award": "3rd Prize",
+          "date": "28th Feb 2026",
+          "description": "It is a two-round technical competition showcasing computer science skills in conceptual quizzes and live code debugging.",
+          "certificate_url": "https://drive.google.com/file/d/1DtMVJUbjNwDAcKkXEQ-QtGpnreTFnP75/view?usp=sharing",
           "image": ""
         }
       ]
