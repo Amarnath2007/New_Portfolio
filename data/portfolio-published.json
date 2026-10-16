@@ -504,5 +504,11 @@
       "contactSource": false,
       "image": ""
     }
-  ]
+  ],
+  "resume": {
+    "url": "https://drive.google.com/file/d/1HdmJToYiAvhOEhPjXkT0Uz9AqbuXZyqh/view?usp=drive_link",
+    "download_url": "https://drive.google.com/uc?export=download&id=1HdmJToYiAvhOEhPjXkT0Uz9AqbuXZyqh",
+    "preview_url": "https://drive.google.com/file/d/1HdmJToYiAvhOEhPjXkT0Uz9AqbuXZyqh/preview",
+    "updated_at": "2026-10-16T08:59:11.558Z"
+  }
 }
