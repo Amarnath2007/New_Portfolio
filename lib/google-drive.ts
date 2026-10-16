@@ -4,6 +4,9 @@
  * thumbnail previews, and view URLs.
  */
 
+export const DEFAULT_RESUME_URL =
+  "https://ydfjuomyveiwbxejkjvh.supabase.co/storage/v1/object/public/resume/Amar_Resume.pdf";
+
 export interface GoogleDriveInfo {
   isGoogleDrive: boolean;
   fileId: string | null;
@@ -79,6 +82,28 @@ export function parseGoogleDriveUrl(inputUrl: string): GoogleDriveInfo {
     };
   }
 
+  const isGoogleDoc = /docs\.google\.com\/document/i.test(inputUrl);
+  const isGooglePresentation = /docs\.google\.com\/presentation/i.test(inputUrl);
+  const isGoogleSpreadsheet = /docs\.google\.com\/spreadsheets/i.test(inputUrl);
+
+  let directDownloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+  let viewUrl = `https://drive.google.com/file/d/${fileId}/view`;
+  let previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+
+  if (isGoogleDoc) {
+    directDownloadUrl = `https://docs.google.com/document/d/${fileId}/export?format=pdf`;
+    viewUrl = `https://docs.google.com/document/d/${fileId}/edit`;
+    previewUrl = `https://docs.google.com/document/d/${fileId}/preview`;
+  } else if (isGooglePresentation) {
+    directDownloadUrl = `https://docs.google.com/presentation/d/${fileId}/export/pdf`;
+    viewUrl = `https://docs.google.com/presentation/d/${fileId}/edit`;
+    previewUrl = `https://docs.google.com/presentation/d/${fileId}/preview`;
+  } else if (isGoogleSpreadsheet) {
+    directDownloadUrl = `https://docs.google.com/spreadsheets/d/${fileId}/export?format=pdf`;
+    viewUrl = `https://docs.google.com/spreadsheets/d/${fileId}/edit`;
+    previewUrl = `https://docs.google.com/spreadsheets/d/${fileId}/preview`;
+  }
+
   return {
     isGoogleDrive: true,
     fileId,
@@ -87,16 +112,16 @@ export function parseGoogleDriveUrl(inputUrl: string): GoogleDriveInfo {
     // Google thumbnail endpoint (with width 1000px)
     thumbnailUrl: `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`,
     // Direct binary download
-    directDownloadUrl: `https://drive.google.com/uc?export=download&id=${fileId}`,
+    directDownloadUrl,
     // Standard view URL
-    viewUrl: `https://drive.google.com/file/d/${fileId}/view`,
+    viewUrl,
     // Embed iframe preview URL
-    previewUrl: `https://drive.google.com/file/d/${fileId}/preview`,
+    previewUrl,
   };
 }
 
 /**
- * Resolves any URL (Google Drive, Supabase, /uploads/, or external)
+ * Resolves any URL (Google Drive, static storage, /uploads/, or external)
  * to an optimal image preview URL.
  */
 export function resolveDisplayImageUrl(url: string | undefined): string {
@@ -121,4 +146,46 @@ export function resolveCertificateUrl(url: string | undefined): string {
     return gDrive.directDownloadUrl || trimmed;
   }
   return trimmed;
+}
+
+/**
+ * Resolves resume download and preview URLs from Google Drive or direct link
+ */
+export function resolveResumeUrls(url: string | undefined): {
+  url: string;
+  downloadUrl: string;
+  previewUrl: string;
+  isGoogleDrive: boolean;
+  fileId: string | null;
+} {
+  if (!url) {
+    return {
+      url: "",
+      downloadUrl: "",
+      previewUrl: "",
+      isGoogleDrive: false,
+      fileId: null,
+    };
+  }
+
+  const trimmed = url.trim();
+  const gDrive = parseGoogleDriveUrl(trimmed);
+
+  if (gDrive.isGoogleDrive && gDrive.fileId) {
+    return {
+      url: trimmed,
+      downloadUrl: gDrive.directDownloadUrl || trimmed,
+      previewUrl: gDrive.previewUrl || gDrive.viewUrl || trimmed,
+      isGoogleDrive: true,
+      fileId: gDrive.fileId,
+    };
+  }
+
+  return {
+    url: trimmed,
+    downloadUrl: trimmed,
+    previewUrl: trimmed,
+    isGoogleDrive: false,
+    fileId: null,
+  };
 }

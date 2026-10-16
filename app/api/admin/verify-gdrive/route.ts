@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
   }
 
   const fileId = gdrive.fileId;
-  const testUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+  const testUrl = gdrive.directDownloadUrl || `https://drive.google.com/uc?export=download&id=${fileId}`;
 
   try {
     const controller = new AbortController();
@@ -65,6 +65,9 @@ export async function GET(request: NextRequest) {
         fileType: "restricted",
         thumbnailUrl: gdrive.thumbnailUrl,
         directImageUrl: gdrive.directImageUrl,
+        directDownloadUrl: gdrive.directDownloadUrl,
+        viewUrl: gdrive.viewUrl,
+        previewUrl: gdrive.previewUrl,
         error: "Google Drive File is Restricted (Not Public)",
         hint: "In Google Drive, click 'Share' on this file → change 'General access' to 'Anyone with the link' (Viewer).",
       });
@@ -78,6 +81,9 @@ export async function GET(request: NextRequest) {
         fileType: "unknown",
         thumbnailUrl: gdrive.thumbnailUrl,
         directImageUrl: gdrive.directImageUrl,
+        directDownloadUrl: gdrive.directDownloadUrl,
+        viewUrl: gdrive.viewUrl,
+        previewUrl: gdrive.previewUrl,
         error: `Google returned HTTP status ${response.status}`,
         hint: "Please ensure this Google Drive link is valid and shared with 'Anyone with the link'.",
       });
@@ -104,9 +110,10 @@ export async function GET(request: NextRequest) {
       directImageUrl: gdrive.directImageUrl,
       directDownloadUrl: gdrive.directDownloadUrl,
       viewUrl: gdrive.viewUrl,
+      previewUrl: gdrive.previewUrl,
       message:
         fileType === "pdf"
-          ? "PDF certificate verified. Will display in your custom Certificate Viewer."
+          ? "PDF document verified. Accessible on Google Drive."
           : fileType === "image"
           ? "Image verified. Will display directly as high-res preview."
           : "File is accessible via Google Drive.",
@@ -120,6 +127,9 @@ export async function GET(request: NextRequest) {
       fileType: "unknown",
       thumbnailUrl: gdrive.thumbnailUrl,
       directImageUrl: gdrive.directImageUrl,
+      directDownloadUrl: gdrive.directDownloadUrl,
+      viewUrl: gdrive.viewUrl,
+      previewUrl: gdrive.previewUrl,
       warning: "Could not reach Google Drive immediately; preview might take a moment to load.",
     });
   }

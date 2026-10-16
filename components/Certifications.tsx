@@ -4,9 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { BadgeCheck, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import SectionDivider from "./SectionDivider";
-import { supabase } from "@/lib/supabase";
 import CertificateModal, { CertificateModalData } from "./CertificateModal";
-import { Certification } from "@/lib/portfolio-data";
+import type { Certification } from "@/lib/portfolio-data";
 
 const initialCerts = [
   {
@@ -51,24 +50,18 @@ export default function Certifications({ data }: CertificationsProps) {
 
     async function fetchCerts() {
       try {
-        const { data: supaData } = await supabase
-          .from("certificates")
-          .select("*")
-          .limit(4);
-        
-        if (supaData && supaData.length > 0) {
-          setCerts(supaData);
-        } else {
-          const enrichedCerts = await Promise.all(initialCerts.map(async (cert) => {
-            const { data: urlData } = supabase.storage
-              .from("certifications")
-              .getPublicUrl(cert.fileName);
-            return { ...cert, file_url: urlData.publicUrl };
-          }));
-          setCerts(enrichedCerts);
+        const res = await fetch("/api/portfolio-data");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data?.certifications && json.data.certifications.length > 0) {
+            setCerts(json.data.certifications);
+            return;
+          }
         }
+        setCerts(initialCerts);
       } catch (err) {
         console.error("Error fetching homepage certs:", err);
+        setCerts(initialCerts);
       }
     }
     fetchCerts();

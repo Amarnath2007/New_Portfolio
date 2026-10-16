@@ -4,23 +4,43 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Download, FolderOpen, MapPin, Linkedin, Instagram, Github, Mail } from "lucide-react";
 import Image from "next/image";
-import { supabase } from "@/lib/supabase";
+import type { ResumeData } from "@/lib/portfolio-data";
 
-export default function Hero() {
-  const [resumeUrl, setResumeUrl] = useState("/resume.pdf");
+interface HeroProps {
+  resume?: ResumeData | string;
+}
+
+export default function Hero({ resume }: HeroProps = {}) {
+  const initialUrl =
+    typeof resume === "string"
+      ? resume
+      : resume?.download_url || resume?.url || "";
+
+  const [resumeUrl, setResumeUrl] = useState(initialUrl || "/resume.pdf");
 
   useEffect(() => {
-    if (supabase && supabase.storage) {
-      try {
-        const { data } = supabase.storage.from("resume").getPublicUrl("Amar_Resume.pdf");
-        if (data?.publicUrl) {
-          setResumeUrl(data.publicUrl);
-        }
-      } catch (err) {
-        console.error("Error getting resume URL:", err);
+    if (resume) {
+      const target = typeof resume === "string" ? resume : (resume.download_url || resume.url);
+      if (target) {
+        setResumeUrl(target);
+        return;
       }
     }
-  }, []);
+
+    // Client-side fallback if resume prop is not passed directly
+    fetch("/api/portfolio-data")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json?.data?.resume) {
+          const r = json.data.resume;
+          const target = typeof r === "string" ? r : (r.download_url || r.url);
+          if (target) {
+            setResumeUrl(target);
+          }
+        }
+      })
+      .catch(() => {});
+  }, [resume]);
 
   const scrollToProjects = () => {
     document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });

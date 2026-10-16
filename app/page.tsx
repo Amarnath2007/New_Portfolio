@@ -54,7 +54,7 @@ export default function Home({ searchParams }: HomeProps) {
 
       <StarsBg />
       <Navbar />
-      <Hero />
+      <Hero resume={portfolio.resume} />
       <Skills data={portfolio.skills} />
       <Achievements data={portfolio.achievements} />
       <Certifications data={portfolio.certifications} />

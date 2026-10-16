@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { BadgeCheck, ExternalLink, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import StarsBg from "@/components/StarsBg";
 import Footer from "@/components/Footer";
@@ -57,56 +56,18 @@ export default function CertificatesPage() {
   useEffect(() => {
     async function fetchCerts() {
       try {
-        // 1. First check portfolio data API (connected to admin dashboard published / draft data)
-        try {
-          const res = await fetch("/api/portfolio-data");
-          if (res.ok) {
-            const resJson = await res.json();
-            if (resJson.data?.certifications && Array.isArray(resJson.data.certifications)) {
-              setCerts(resJson.data.certifications);
-              setLoading(false);
-              return;
-            }
-          }
-        } catch (apiErr) {
-          console.warn("Portfolio data API not reachable, trying Supabase fallback", apiErr);
-        }
-
-        const { data, error } = await supabase
-          .from("certificates")
-          .select("*")
-          .order("created_at", { ascending: false });
-
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          setCerts(data);
-        } else {
-          const { data: storageData, error: storageError } = await supabase
-            .storage
-            .from("certifications")
-            .list();
-
-          if (storageError) throw storageError;
-
-          if (storageData && storageData.length > 0) {
-            const formattedCerts = storageData.map((file) => ({
-              id: file.id || file.name,
-              title: file.name.replace(".pdf", ""),
-              issuer: "External Certification",
-              file_url: supabase.storage.from("certifications").getPublicUrl(file.name).data.publicUrl,
-            }));
-            setCerts(formattedCerts);
-          } else {
-            const enrichedFallbacks = FALLBACK_CERTS.map((cert) => ({
-              ...cert,
-              file_url: supabase.storage.from("certifications").getPublicUrl(cert.fileName).data.publicUrl
-            }));
-            setCerts(enrichedFallbacks);
+        const res = await fetch("/api/portfolio-data");
+        if (res.ok) {
+          const resJson = await res.json();
+          if (resJson.data?.certifications && Array.isArray(resJson.data.certifications)) {
+            setCerts(resJson.data.certifications);
+            return;
           }
         }
+        setCerts(FALLBACK_CERTS);
       } catch (err) {
         console.error("Error fetching certificates:", err);
+        setCerts(FALLBACK_CERTS);
       } finally {
         setLoading(false);
       }
@@ -181,7 +142,7 @@ export default function CertificatesPage() {
 
         {!loading && certs.length === 0 && (
           <div className="text-center py-20 bg-[#151517] rounded-3xl border border-dashed border-[#302D28]">
-            <p className="text-[#A7A198] text-sm italic">No certificates found. Add some to your Supabase storage!</p>
+            <p className="text-[#A7A198] text-sm italic">No certificates found. Add some in your Admin Dashboard!</p>
           </div>
         )}
       </div>

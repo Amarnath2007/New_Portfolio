@@ -18,13 +18,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import StarsBg from "@/components/StarsBg";
 import Footer from "@/components/Footer";
 import CertificateModal, { CertificateModalData } from "@/components/CertificateModal";
 import { parseGoogleDriveUrl, resolveDisplayImageUrl } from "@/lib/google-drive";
-import { AchievementEntry } from "@/lib/portfolio-data";
+import type { AchievementEntry } from "@/lib/portfolio-data";
 
 interface LegacyFile {
   id: string;
@@ -55,9 +54,8 @@ export default function AchievementGallery() {
       try {
         setLoading(true);
         const foundEntries: AchievementEntry[] = [];
-        const foundLegacy: LegacyFile[] = [];
 
-        // 1. Fetch from Portfolio published / draft data
+        // Fetch from Portfolio published / draft data
         try {
           const res = await fetch("/api/portfolio-data");
           if (res.ok) {
@@ -78,33 +76,8 @@ export default function AchievementGallery() {
           console.warn("Portfolio data fetch error:", dataErr);
         }
 
-        // 2. Fetch from Supabase storage bucket (legacy files if any)
-        try {
-          const { data, error } = await supabase.storage
-            .from("achievements")
-            .list(category);
-
-          if (!error && data && data.length > 0) {
-            data.forEach((file) => {
-              const isPdf = file.name.toLowerCase().endsWith(".pdf");
-              const { data: urlData } = supabase.storage
-                .from("achievements")
-                .getPublicUrl(`${category}/${file.name}`);
-
-              foundLegacy.push({
-                id: file.id || file.name,
-                name: file.name,
-                url: urlData.publicUrl,
-                type: isPdf ? "pdf" : "image",
-              });
-            });
-          }
-        } catch (supaErr) {
-          console.warn("Supabase bucket fetch skipped:", supaErr);
-        }
-
         setEntries(foundEntries);
-        setLegacyFiles(foundLegacy);
+        setLegacyFiles([]);
       } catch (err) {
         console.error("Error fetching category entries:", err);
       } finally {

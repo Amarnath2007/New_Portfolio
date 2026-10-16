@@ -50,21 +50,23 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import CertificateModal, { CertificateModalData } from "../CertificateModal";
-import {
+import type {
   PortfolioData,
   SkillCategory,
   Achievement,
   AchievementCategory,
   AchievementEntry,
-  FIXED_ACHIEVEMENT_CATEGORIES,
   Certification,
   Project,
+  ResumeData,
   DiffItem,
 } from "@/lib/portfolio-data";
 import {
   parseGoogleDriveUrl,
   extractGoogleDriveFileId,
   resolveDisplayImageUrl,
+  resolveResumeUrls,
+  DEFAULT_RESUME_URL,
 } from "@/lib/google-drive";
 
 const AVAILABLE_ICONS = [
@@ -87,7 +89,7 @@ const AVAILABLE_ICONS = [
 ];
 
 export default function AdminDashboardClient() {
-  const [activeTab, setActiveTab] = useState<"skills" | "achievements" | "certifications" | "projects" | "publish">("skills");
+  const [activeTab, setActiveTab] = useState<"skills" | "achievements" | "certifications" | "projects" | "resume" | "publish">("skills");
   const [data, setData] = useState<PortfolioData | null>(null);
   const [publishedData, setPublishedData] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -104,8 +106,23 @@ export default function AdminDashboardClient() {
   const [revertModalOpen, setRevertModalOpen] = useState(false);
   const [reverting, setReverting] = useState(false);
 
-  // Preview Modal for testing certificate viewer
+  // Preview Modal for testing certificate/resume viewer
   const [testCertModal, setTestCertModal] = useState<CertificateModalData | null>(null);
+
+  // Resume State
+  const [resumeInputUrl, setResumeInputUrl] = useState<string>("");
+  const [resumeVerifyState, setResumeVerifyState] = useState<{
+    loading: boolean;
+    accessible: boolean | null;
+    fileType?: string;
+    directDownloadUrl?: string;
+    viewUrl?: string;
+    previewUrl?: string;
+    thumbnailUrl?: string;
+    error?: string;
+    hint?: string;
+    message?: string;
+  }>({ loading: false, accessible: null });
 
   // Item Edit / Add Modals
   const [editingSkillCategory, setEditingSkillCategory] = useState<{ item: SkillCategory; isNew: boolean } | null>(null);
@@ -176,6 +193,76 @@ export default function AdminDashboardClient() {
     }
   };
 
+  // Google Drive Resume verification
+  const verifyResumeLink = async (url: string) => {
+    if (!url || !url.trim()) {
+      setResumeVerifyState({ loading: false, accessible: null });
+      return;
+    }
+
+    const trimmed = url.trim();
+    const parsed = parseGoogleDriveUrl(trimmed);
+
+    if (!parsed.isGoogleDrive || !parsed.fileId) {
+      const isValidUrl = /^https?:\/\//i.test(trimmed);
+      if (!isValidUrl) {
+        setResumeVerifyState({
+          loading: false,
+          accessible: false,
+          error: "Invalid link format",
+          hint: "Please enter a valid Google Drive sharing URL (e.g. https://drive.google.com/file/d/.../view?usp=sharing) or a public URL.",
+        });
+      } else {
+        setResumeVerifyState({
+          loading: false,
+          accessible: true,
+          directDownloadUrl: trimmed,
+          viewUrl: trimmed,
+          previewUrl: trimmed,
+          message: "Direct link format valid.",
+        });
+      }
+      return;
+    }
+
+    try {
+      setResumeVerifyState({ loading: true, accessible: null });
+      const res = await fetch(`/api/admin/verify-gdrive?url=${encodeURIComponent(trimmed)}`);
+      if (res.ok) {
+        const json = await res.json();
+        setResumeVerifyState({
+          loading: false,
+          accessible: json.accessible,
+          fileType: json.fileType,
+          directDownloadUrl: json.directDownloadUrl || parsed.directDownloadUrl || trimmed,
+          viewUrl: json.viewUrl || parsed.viewUrl || trimmed,
+          previewUrl: json.previewUrl || parsed.previewUrl || trimmed,
+          thumbnailUrl: json.thumbnailUrl || parsed.thumbnailUrl || undefined,
+          error: json.error,
+          hint: json.hint,
+          message: json.message,
+        });
+      } else {
+        setResumeVerifyState({
+          loading: false,
+          accessible: false,
+          error: `Verification error (${res.status})`,
+          hint: "Make sure 'Anyone with the link' has Viewer access in Google Drive sharing settings.",
+        });
+      }
+    } catch (err: any) {
+      setResumeVerifyState({
+        loading: false,
+        accessible: true,
+        directDownloadUrl: parsed.directDownloadUrl || trimmed,
+        viewUrl: parsed.viewUrl || trimmed,
+        previewUrl: parsed.previewUrl || trimmed,
+        thumbnailUrl: parsed.thumbnailUrl || undefined,
+        message: "Google Drive link format valid.",
+      });
+    }
+  };
+
   // Fetch initial content
   const loadContent = async () => {
     try {
@@ -187,6 +274,9 @@ export default function AdminDashboardClient() {
       setPublishedData(json.published);
       setHasPendingChanges(json.hasPendingChanges);
       setDiffs(json.diffs || []);
+      const initResume = json.draft?.resume?.url || DEFAULT_RESUME_URL;
+      setResumeInputUrl(initResume);
+      verifyResumeLink(initResume);
     } catch (err: any) {
       showToast(err.message || "Could not fetch content", "error");
     } finally {
@@ -235,6 +325,52 @@ export default function AdminDashboardClient() {
     }
   };
 
+  // Resume Actions
+  const handleSaveResume = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!data) return;
+
+    const url = (resumeInputUrl || "").trim();
+    if (!url) {
+      showToast("Please enter a Google Drive link or file URL", "error");
+      return;
+    }
+
+    if (resumeVerifyState.accessible === false && resumeVerifyState.error) {
+      showToast(`Cannot save: ${resumeVerifyState.error}`, "error");
+      return;
+    }
+
+    const resolved = resolveResumeUrls(url);
+    const updatedResume: ResumeData = {
+      url,
+      download_url: resumeVerifyState.directDownloadUrl || resolved.downloadUrl,
+      preview_url: resumeVerifyState.previewUrl || resolved.previewUrl,
+      updated_at: new Date().toISOString(),
+    };
+
+    const updatedData: PortfolioData = {
+      ...data,
+      resume: updatedResume,
+    };
+
+    await saveDraft(updatedData);
+    showToast("Resume changes saved to local draft! Preview your site or Publish Live when ready.", "success");
+  };
+
+  const handlePreviewResume = () => {
+    const currentUrl = (resumeInputUrl || data?.resume?.url || DEFAULT_RESUME_URL).trim();
+    const resolved = resolveResumeUrls(currentUrl);
+    const previewTarget = resumeVerifyState.directDownloadUrl || resolved.downloadUrl || resumeVerifyState.previewUrl || resolved.previewUrl || currentUrl;
+
+    setTestCertModal({
+      title: "Amarnath B - Resume",
+      issuer: "Current Resume Document",
+      description: "Preview of your configured resume document.",
+      file_url: previewTarget,
+    });
+  };
+
   // Revert draft to published
   const handleRevert = async () => {
     try {
@@ -246,6 +382,9 @@ export default function AdminDashboardClient() {
       setData(resJson.data);
       setHasPendingChanges(false);
       setDiffs([]);
+      const revResume = resJson.data?.resume?.url || DEFAULT_RESUME_URL;
+      setResumeInputUrl(revResume);
+      verifyResumeLink(revResume);
       setRevertModalOpen(false);
       showToast("Draft reverted back to published portfolio content.", "info");
     } catch (err: any) {
@@ -895,6 +1034,19 @@ export default function AdminDashboardClient() {
           >
             <FolderGit2 size={16} />
             Projects ({data.projects.length})
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("resume")}
+            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
+              activeTab === "resume"
+                ? "bg-[#202023] text-[#C7A46A] border border-[#C7A46A]/40 shadow-sm"
+                : "text-[#A7A198] hover:text-[#F4F0E8] hover:bg-[#151517]"
+            }`}
+          >
+            <FileText size={16} />
+            Resume
           </button>
 
           <button
@@ -1819,7 +1971,258 @@ export default function AdminDashboardClient() {
         )}
 
         {/* ========================================================================= */}
-        {/* SECTION E: PUBLISH & DIFF SUMMARY */}
+        {/* SECTION E: RESUME MANAGEMENT */}
+        {/* ========================================================================= */}
+        {activeTab === "resume" && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold font-heading text-[#F4F0E8]">
+                  Resume Management
+                </h2>
+                <p className="text-xs sm:text-sm text-[#A7A198] mt-1">
+                  Manage your portfolio resume link. Paste a Google Drive sharing link, verify accessibility, test preview, and save changes to your local draft.
+                </p>
+              </div>
+
+              {/* Status Badge */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#151517] border border-[#302D28] text-xs font-medium text-[#C7A46A] self-start sm:self-auto">
+                <FileText size={14} />
+                <span>
+                  {resumeInputUrl && /drive\.google\.com|docs\.google\.com/i.test(resumeInputUrl)
+                    ? "Google Drive Link"
+                    : "Direct Link"}
+                </span>
+              </div>
+            </div>
+
+            {/* Main Resume Form Card */}
+            <div className="p-6 sm:p-8 rounded-2xl bg-[#151517] border border-[#302D28] space-y-6">
+              <form onSubmit={handleSaveResume} className="space-y-6">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <label className="block text-xs font-semibold text-[#F4F0E8]">
+                      Google Drive Resume Link <span className="text-[#C7A46A]">*</span>
+                    </label>
+                    <span className="text-[11px] text-[#A7A198]">
+                      Supports Google Drive sharing links and Google Docs
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-stretch gap-2.5">
+                    <div className="relative flex-grow">
+                      <input
+                        type="url"
+                        value={resumeInputUrl}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setResumeInputUrl(val);
+                          verifyResumeLink(val);
+                        }}
+                        placeholder="https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/view?usp=sharing"
+                        className="w-full px-4 py-3 rounded-xl bg-[#202023] border border-[#302D28] text-xs sm:text-sm text-[#F4F0E8] focus:outline-none focus:border-[#C7A46A] transition-colors pr-20 font-mono"
+                      />
+                      {resumeInputUrl && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setResumeInputUrl("");
+                            setResumeVerifyState({ loading: false, accessible: null });
+                          }}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#A7A198] hover:text-[#F4F0E8] px-2 py-1 rounded bg-[#151517]/80 hover:bg-[#151517] transition-all"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const text = await navigator.clipboard.readText();
+                          if (text) {
+                            setResumeInputUrl(text);
+                            verifyResumeLink(text);
+                            showToast("Pasted from clipboard", "info");
+                          }
+                        } catch (err) {
+                          showToast("Clipboard access denied. Please paste manually.", "error");
+                        }
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-[#202023] hover:bg-[#28282c] border border-[#302D28] text-xs font-semibold text-[#F4F0E8] hover:text-[#C7A46A] transition-all flex items-center justify-center gap-1.5 shrink-0"
+                    >
+                      <Copy size={13} />
+                      <span>Paste Link</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResumeInputUrl(DEFAULT_RESUME_URL);
+                        verifyResumeLink(DEFAULT_RESUME_URL);
+                        showToast("Reset link to default resume", "info");
+                      }}
+                      className="px-3.5 py-2.5 rounded-xl bg-[#202023] hover:bg-[#28282c] border border-[#302D28] text-xs font-semibold text-[#A7A198] hover:text-[#F4F0E8] transition-all flex items-center justify-center gap-1.5 shrink-0"
+                      title="Reset to default resume URL"
+                    >
+                      <RotateCcw size={13} />
+                      <span>Reset</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Real-Time Verification Loading Indicator */}
+                {resumeVerifyState.loading && (
+                  <div className="flex items-center gap-3 p-3.5 rounded-xl bg-[#202023] border border-[#302D28] text-xs text-[#C7A46A] animate-pulse">
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Verifying Google Drive link accessibility & permissions...</span>
+                  </div>
+                )}
+
+                {/* Restricted / Permission Error Alert */}
+                {resumeVerifyState.accessible === false && (
+                  <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-600/40 text-amber-200 text-xs space-y-2">
+                    <div className="flex items-center gap-2 font-bold text-amber-400 text-sm">
+                      <AlertTriangle size={16} />
+                      <span>{resumeVerifyState.error || "Google Drive Permission Required"}</span>
+                    </div>
+                    <p className="text-xs leading-relaxed text-amber-200/90">
+                      {resumeVerifyState.hint ||
+                        "This link is private or restricted. In Google Drive, click 'Share' on your resume → change 'General access' from 'Restricted' to 'Anyone with the link' (Viewer), then click 'Done'."}
+                    </p>
+                  </div>
+                )}
+
+                {/* Verified Link Info Card */}
+                {resumeVerifyState.accessible && (
+                  <div className="p-4 sm:p-5 rounded-xl bg-[#202023] border border-[#302D28] space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-green-400 font-semibold text-xs sm:text-sm">
+                        <CheckCircle2 size={16} />
+                        <span>Google Drive Link Verified & Accessible</span>
+                      </div>
+                      <span className="text-[11px] text-[#A7A198] font-mono">
+                        {resumeVerifyState.fileType?.toUpperCase() || "DOCUMENT"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                      {/* Direct Download URL info */}
+                      <div className="p-3 rounded-lg bg-[#151517] border border-[#302D28]/80 text-xs space-y-1">
+                        <div className="flex items-center justify-between text-[#A7A198] text-[11px] font-semibold">
+                          <span>Converted Download URL (Used by public buttons)</span>
+                        </div>
+                        <p className="font-mono text-[11px] text-[#C7A46A] truncate">
+                          {resumeVerifyState.directDownloadUrl || resumeInputUrl}
+                        </p>
+                      </div>
+
+                      {/* Preview URL info */}
+                      <div className="p-3 rounded-lg bg-[#151517] border border-[#302D28]/80 text-xs space-y-1">
+                        <div className="flex items-center justify-between text-[#A7A198] text-[11px] font-semibold">
+                          <span>Converted Preview URL</span>
+                        </div>
+                        <p className="font-mono text-[11px] text-[#C7A46A] truncate">
+                          {resumeVerifyState.previewUrl || resumeVerifyState.viewUrl || resumeInputUrl}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Form Action Buttons */}
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <button
+                    type="submit"
+                    disabled={saving || resumeVerifyState.loading}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#C7A46A] hover:bg-[#D8BC8A] text-[#151517] text-xs sm:text-sm font-bold transition-all shadow-lg hover:shadow-[#C7A46A]/20 disabled:opacity-50"
+                  >
+                    {saving ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        Saving to Draft...
+                      </>
+                    ) : (
+                      <>
+                        <Save size={16} />
+                        Save Changes
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handlePreviewResume}
+                    className="flex items-center gap-2 px-5 py-3 rounded-xl bg-[#202023] hover:bg-[#28282c] border border-[#302D28] text-xs sm:text-sm font-semibold text-[#F4F0E8] hover:text-[#C7A46A] transition-all"
+                  >
+                    <Eye size={16} />
+                    Preview Resume
+                  </button>
+
+                  {(resumeVerifyState.previewUrl || resumeVerifyState.viewUrl) && (
+                    <a
+                      href={resumeVerifyState.previewUrl || resumeVerifyState.viewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-4 py-3 rounded-xl bg-[#202023] hover:bg-[#28282c] border border-[#302D28] text-xs sm:text-sm font-semibold text-[#A7A198] hover:text-[#F4F0E8] transition-all"
+                    >
+                      <ExternalLink size={14} />
+                      <span>Open Drive Viewer</span>
+                    </a>
+                  )}
+
+                  <a
+                    href="/?preview=true"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 ml-auto text-xs font-semibold text-[#C7A46A] hover:text-[#D8BC8A] transition-colors py-2"
+                  >
+                    <ExternalLink size={13} />
+                    <span>Test on Public Preview Site</span>
+                  </a>
+                </div>
+              </form>
+            </div>
+
+            {/* Google Drive Guide & Workflow Info Card */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-5 rounded-xl bg-[#151517] border border-[#302D28] space-y-3">
+                <div className="flex items-center gap-2 text-sm font-bold font-heading text-[#F4F0E8]">
+                  <HelpCircle size={16} className="text-[#C7A46A]" />
+                  <span>How to Get a Google Drive Resume Link</span>
+                </div>
+                <ol className="text-xs text-[#A7A198] space-y-2 list-decimal list-inside leading-relaxed">
+                  <li>Upload your resume PDF to your Google Drive.</li>
+                  <li>Right-click the PDF file and choose <strong className="text-[#F4F0E8]">Share &gt; Share</strong>.</li>
+                  <li>Under <strong className="text-[#F4F0E8]">General access</strong>, change from "Restricted" to <strong className="text-[#C7A46A]">"Anyone with the link"</strong> with role <strong className="text-[#F4F0E8]">"Viewer"</strong>.</li>
+                  <li>Click <strong className="text-[#F4F0E8]">Copy link</strong> and paste it into the field above.</li>
+                </ol>
+              </div>
+
+              <div className="p-5 rounded-xl bg-[#151517] border border-[#302D28] space-y-3">
+                <div className="flex items-center gap-2 text-sm font-bold font-heading text-[#F4F0E8]">
+                  <Sparkles size={16} className="text-[#C7A46A]" />
+                  <span>Publishing Workflow</span>
+                </div>
+                <ul className="text-xs text-[#A7A198] space-y-2 leading-relaxed">
+                  <li>
+                    <strong className="text-[#F4F0E8]">1. Local Edit:</strong> Clicking "Save Changes" updates only your local draft (<code className="text-[#C7A46A] text-[11px]">portfolio-draft.json</code>).
+                  </li>
+                  <li>
+                    <strong className="text-[#F4F0E8]">2. Preview:</strong> Click "Preview Site" to test the Download Resume button on your actual hero section before going live.
+                  </li>
+                  <li>
+                    <strong className="text-[#F4F0E8]">3. Publish Live:</strong> Click "Publish Live" in the top bar to commit and deploy the new resume to your live website.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* SECTION F: PUBLISH & DIFF SUMMARY */}
         {/* ========================================================================= */}
         {activeTab === "publish" && (
           <div className="space-y-6">

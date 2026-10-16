@@ -32,6 +32,7 @@ export async function GET(request: Request) {
       achievements: diffs.filter((d) => d.section === "achievements"),
       certifications: diffs.filter((d) => d.section === "certifications"),
       projects: diffs.filter((d) => d.section === "projects"),
+      resume: diffs.filter((d) => d.section === "resume"),
     };
 
     return NextResponse.json({

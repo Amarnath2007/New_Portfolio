@@ -1,6 +1,6 @@
 # New_Portfolio
 
-A personal portfolio website built with Next.js, TypeScript, Tailwind CSS, Framer Motion, Supabase, and Resend.
+A personal portfolio website built with Next.js, TypeScript, Tailwind CSS, Framer Motion, and Resend.
 
 ## Features
 - **Hero & Identity**: Custom hero section with portrait integration and social links.

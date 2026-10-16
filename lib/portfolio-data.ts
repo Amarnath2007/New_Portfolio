@@ -1,5 +1,8 @@
 import fs from "fs";
 import path from "path";
+import { resolveResumeUrls, DEFAULT_RESUME_URL } from "./google-drive";
+
+export { DEFAULT_RESUME_URL };
 
 export interface SkillCategory {
   id: string;
@@ -63,11 +66,19 @@ export interface Project {
   demo?: string;
 }
 
+export interface ResumeData {
+  url: string;            // The Google Drive sharing link or file URL
+  download_url?: string;  // Direct download link
+  preview_url?: string;   // Preview / view link
+  updated_at?: string;    // ISO timestamp
+}
+
 export interface PortfolioData {
   skills: SkillCategory[];
   achievements: Achievement[];
   certifications: Certification[];
   projects: Project[];
+  resume?: ResumeData;
 }
 
 export const FIXED_ACHIEVEMENT_CATEGORIES = [
@@ -183,6 +194,37 @@ export function normalizePortfolioData(raw: PortfolioData): PortfolioData {
       entries,
     });
   }
+
+  // Normalize Resume Object
+  let resumeObj: ResumeData = {
+    url: DEFAULT_RESUME_URL,
+    download_url: DEFAULT_RESUME_URL,
+    preview_url: DEFAULT_RESUME_URL,
+    updated_at: new Date().toISOString(),
+  };
+
+  const rawResume = (raw as any)?.resume;
+  if (typeof rawResume === "string" && rawResume.trim()) {
+    const trimmed = rawResume.trim();
+    const resolved = resolveResumeUrls(trimmed);
+    resumeObj = {
+      url: trimmed,
+      download_url: resolved.downloadUrl,
+      preview_url: resolved.previewUrl,
+      updated_at: new Date().toISOString(),
+    };
+  } else if (rawResume && typeof rawResume === "object") {
+    const url = (rawResume.url || "").trim() || DEFAULT_RESUME_URL;
+    const resolved = resolveResumeUrls(url);
+    resumeObj = {
+      url,
+      download_url: rawResume.download_url || resolved.downloadUrl,
+      preview_url: rawResume.preview_url || resolved.previewUrl,
+      updated_at: rawResume.updated_at || new Date().toISOString(),
+    };
+  }
+
+  normalized.resume = resumeObj;
 
   return normalized;
 }
@@ -302,11 +344,21 @@ export function validatePortfolioData(data: PortfolioData): { valid: boolean; er
     });
   }
 
+  if (data.resume) {
+    const url = typeof data.resume === "string" ? data.resume : data.resume.url;
+    if (url && typeof url === "string") {
+      const trimmed = url.trim();
+      if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://") && !trimmed.startsWith("/")) {
+        errors.push("Resume link must be a valid URL starting with https://");
+      }
+    }
+  }
+
   return { valid: errors.length === 0, errors };
 }
 
 export interface DiffItem {
-  section: "skills" | "achievements" | "certifications" | "projects";
+  section: "skills" | "achievements" | "certifications" | "projects" | "resume";
   action: "added" | "modified" | "deleted";
   identifier: string;
   details: string;
@@ -482,6 +534,33 @@ export function computeDiff(draft: PortfolioData, published: PortfolioData): Dif
         details: `Deleted project`,
       });
     }
+  }
+
+  // Resume Diff
+  const pubResumeUrl = (typeof published.resume === "string" ? published.resume : published.resume?.url || "").trim();
+  const draftResumeUrl = (typeof draft.resume === "string" ? draft.resume : draft.resume?.url || "").trim();
+
+  if (draftResumeUrl && !pubResumeUrl) {
+    diffs.push({
+      section: "resume",
+      action: "added",
+      identifier: "Resume Link",
+      details: `Added new resume link (${draftResumeUrl.substring(0, 45)}...)`,
+    });
+  } else if (!draftResumeUrl && pubResumeUrl) {
+    diffs.push({
+      section: "resume",
+      action: "deleted",
+      identifier: "Resume Link",
+      details: "Removed resume link",
+    });
+  } else if (draftResumeUrl && pubResumeUrl && draftResumeUrl !== pubResumeUrl) {
+    diffs.push({
+      section: "resume",
+      action: "modified",
+      identifier: "Resume Link",
+      details: `Updated resume link to ${draftResumeUrl.substring(0, 50)}...`,
+    });
   }
 
   return diffs;
