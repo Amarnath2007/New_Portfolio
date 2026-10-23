@@ -334,21 +334,12 @@
   ],
   "certifications": [
     {
-      "id": "cert-1",
-      "title": "HDCA Programming Certificate",
-      "issuer": "CSC (Computer Science Corporation)",
+      "id": "cert-1792779675568",
+      "title": "HDCA Programming",
+      "issuer": "CSC (Computer Software College)",
       "description": "Comprehensive programming certification covering hardware and software fundamentals alongside core coding skills.",
-      "issue_date": "2024",
-      "file_url": "https://ydfjuomyveiwbxejkjvh.supabase.co/storage/v1/object/public/certifications/Hdca.pdf",
-      "original_link": ""
-    },
-    {
-      "id": "cert-2",
-      "title": "Introduction to C",
-      "issuer": "NPTEL",
-      "description": "Officially certified by NPTEL, India's premier e-learning platform backed by IITs and IISc, covering C programming fundamentals.",
-      "issue_date": "2024",
-      "file_url": "https://ydfjuomyveiwbxejkjvh.supabase.co/storage/v1/object/public/certifications/Nptel.pdf",
+      "issue_date": "2023",
+      "file_url": "https://drive.google.com/file/d/1a3G7_mwptM4aMlqgiaQSO8g0T0QMmB8r/view?usp=sharing",
       "original_link": ""
     },
     {
@@ -356,8 +347,8 @@
       "title": "SEO for WordPress",
       "issuer": "Udemy",
       "description": "Completed training on search engine optimization techniques, web content strategy, and WordPress website management.",
-      "issue_date": "2024",
-      "file_url": "https://ydfjuomyveiwbxejkjvh.supabase.co/storage/v1/object/public/certifications/seo-udemy.pdf",
+      "issue_date": "2025",
+      "file_url": "https://drive.google.com/file/d/11DZBzAzPvYjfhd-YX-ddxIjrhGdeSBxv/view?usp=sharing",
       "original_link": ""
     },
     {
@@ -365,8 +356,17 @@
       "title": "AI Tools Workshop",
       "issuer": "Be10x",
       "description": "Successfully completed an intensive workshop on AI tools, focusing on productivity enhancement and advanced generative AI workflows.",
-      "issue_date": "2024",
-      "file_url": "https://ydfjuomyveiwbxejkjvh.supabase.co/storage/v1/object/public/certifications/B10x.pdf",
+      "issue_date": "2025",
+      "file_url": "https://drive.google.com/file/d/1kaArh9EgD1OpNx5W1f_3iGDL_mf1XufI/view?usp=sharing",
+      "original_link": ""
+    },
+    {
+      "id": "cert-2",
+      "title": "Introduction to C",
+      "issuer": "NPTEL",
+      "description": "Officially certified by NPTEL, India's premier e-learning platform backed by IITs and IISc, covering C programming fundamentals.",
+      "issue_date": "2025",
+      "file_url": "https://drive.google.com/file/d/117aInVhLOp1GUkeLT2ZJAw1fm8TMQMip/view?usp=sharing",
       "original_link": ""
     }
   ],
