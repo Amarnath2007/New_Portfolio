@@ -310,23 +310,63 @@
       "proof_document": "",
       "entries": [
         {
+          "id": "entry-1791888780422",
+          "title": "Startup Pitching Competition- Regional AI Summit 2.0",
+          "event_name": "Sri Ramakrishna Institute of Technology",
+          "position_award": "Participant",
+          "date": "24-26 Sept 2026",
+          "description": "A three-day startup pitching competition featuring direct engagement with investors and industry experts. Presented our startup vision, received investor interest, and evaluated funding opportunities while prioritizing long-term growth and strategic equity ownership.",
+          "certificate_url": "https://drive.google.com/file/d/1JVM0ZV6Z1L2TocCERF612XmgkF4-dKCu/view?usp=sharing",
+          "image": ""
+        },
+        {
           "id": "entry-1791811915444",
           "title": "Startup Pitching Competition",
           "event_name": "Lead College of Management, Palakkad",
-          "position_award": "Selected in Top 10 ideas",
+          "position_award": "Top 5 ideas",
           "date": "9-10th Sept 2026",
           "description": "What an Idea Sirji! program is a two-day residential entrepreneurship and idea-pitching competition organized by the LEAD Business Incubator (LEAD-BI) at LEAD College of Management in Palakkad, Kerala",
           "certificate_url": "https://drive.google.com/file/d/1PrjaeFjg5h_F7X6WVIyLSZxei2kRC4vG/view?usp=sharing",
           "image": ""
         },
         {
-          "id": "entry-1791888780422",
-          "title": "Startup Pitching Competition- Regional AI Summit 2.0",
-          "event_name": "Sri Ramakrishna Institute of Technology",
-          "position_award": "",
-          "date": "24-26 Sept 2026",
-          "description": "A three-day startup pitching competition featuring direct engagement with investors and industry experts. Presented our startup vision, received investor interest, and evaluated funding opportunities while prioritizing long-term growth and strategic equity ownership.",
-          "certificate_url": "https://drive.google.com/file/d/1JVM0ZV6Z1L2TocCERF612XmgkF4-dKCu/view?usp=sharing",
+          "id": "entry-1793212057169",
+          "title": "Bug Hunt",
+          "event_name": "Rajalakshmi Institute of Technology, Chennai",
+          "position_award": "Participant",
+          "date": "16th April 2026",
+          "description": "It is a timed technical event where participants find, analyze, and fix software defects, syntax errors, or logic flaws in pre-existing code",
+          "certificate_url": "https://drive.google.com/file/d/1bxOe2wON_IjOVVAd6od_vCbJlP80Tpzv/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1793212850267",
+          "title": "Gateway'26",
+          "event_name": "PSG CAS",
+          "position_award": "Volunteer",
+          "date": "25th Feb 2026",
+          "description": "Volunteered at an inter-college event, where I was responsible for organizing activities, managing student participants, and providing guidance.",
+          "certificate_url": "https://drive.google.com/file/d/1-uLzZmdWU2_hh_z193uDi_69w_rT3hQQ/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1793212226883",
+          "title": "Young Innovators Ideathon",
+          "event_name": "RVS College of Arts & Science",
+          "position_award": "Top 5 ideas",
+          "date": "8th Jan 2026",
+          "description": "Pitched the project to a panel of expert judges and collaborated with our team to conceptualize, develop, and present a viable, technology-driven solution aimed at solving real-world challenges.",
+          "certificate_url": "https://drive.google.com/file/d/1psKUwtcmF5RGpGxQQouG4sqo9clPgN94/view?usp=sharing",
+          "image": ""
+        },
+        {
+          "id": "entry-1793212593432",
+          "title": "Smart India Hackathon- Internal",
+          "event_name": "PSG CAS",
+          "position_award": "Participant",
+          "date": "23rd Sept 2025",
+          "description": "Collaborated with a team to develop a solution for a real-world, government-issued problem statement, successfully presenting the final product to a panel of experts",
+          "certificate_url": "https://drive.google.com/file/d/1viNIRhE4cIFLWhhaPbn5X5AoGgVwG58c/view?usp=sharing",
           "image": ""
         }
       ]
@@ -367,6 +407,15 @@
       "description": "Officially certified by NPTEL, India's premier e-learning platform backed by IITs and IISc, covering C programming fundamentals.",
       "issue_date": "2025",
       "file_url": "https://drive.google.com/file/d/117aInVhLOp1GUkeLT2ZJAw1fm8TMQMip/view?usp=sharing",
+      "original_link": ""
+    },
+    {
+      "id": "cert-1793211631283",
+      "title": "AI Automation Tools",
+      "issuer": "PSG CAS",
+      "description": "Certified in AI automation basics using UiPath. Skilled in building software robots, designing smart workflows, and integrating AI to eliminate repetitive tasks.",
+      "issue_date": "2025",
+      "file_url": "https://drive.google.com/file/d/1q2pLcE4FI67o2Xe044-XKXRubyE5bb4F/view?usp=sharing",
       "original_link": ""
     }
   ],
