@@ -1,11 +1,12 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Rocket, Users, Lightbulb, ExternalLink } from "lucide-react";
 import Image from "next/image";
 import SectionDivider from "./SectionDivider";
 
 export default function Experience() {
+  const shouldReduceMotion = useReducedMotion();
   return (
     <section
       id="experience"
@@ -203,7 +204,13 @@ export default function Experience() {
 
               <div className="flex flex-col space-y-4 md:space-y-5">
                 {/* Role 1: Campus Ambassador */}
-                <div className="relative group">
+                <motion.div
+                  initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, delay: shouldReduceMotion ? 0 : 0.05, ease: "easeOut" }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  className="relative group"
+                >
                   {/* Glowing Timeline Dot - centered precisely on the connecting line and card */}
                   <div className="absolute -left-8 sm:-left-10 w-8 sm:w-10 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none z-10">
                     <span className="w-3.5 h-3.5 rounded-full bg-[#C7A46A] shadow-[0_0_10px_#C7A46A] ring-4 ring-[#C7A46A]/20" />
@@ -241,10 +248,16 @@ export default function Experience() {
                       </span>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Role 2: Joint Secretary */}
-                <div className="relative group">
+                <motion.div
+                  initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, delay: shouldReduceMotion ? 0 : 0.15, ease: "easeOut" }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  className="relative group"
+                >
                   {/* Glowing Timeline Dot - centered precisely on the connecting line and card */}
                   <div className="absolute -left-8 sm:-left-10 w-8 sm:w-10 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none z-10">
                     <span className="w-3.5 h-3.5 rounded-full bg-[#C7A46A] shadow-[0_0_10px_#C7A46A] ring-4 ring-[#C7A46A]/20" />
@@ -282,10 +295,16 @@ export default function Experience() {
                       </span>
                     </div>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Role 3: Innovation Ambassador */}
-                <div className="relative group">
+                <motion.div
+                  initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, delay: shouldReduceMotion ? 0 : 0.25, ease: "easeOut" }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  className="relative group"
+                >
                   {/* Glowing Timeline Dot - centered precisely on the connecting line and card */}
                   <div className="absolute -left-8 sm:-left-10 w-8 sm:w-10 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none z-10">
                     <span className="w-3.5 h-3.5 rounded-full bg-[#C7A46A] shadow-[0_0_10px_#C7A46A] ring-4 ring-[#C7A46A]/20" />
@@ -323,7 +342,7 @@ export default function Experience() {
                       </span>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
           </div>
