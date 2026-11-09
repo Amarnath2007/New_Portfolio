@@ -29,13 +29,9 @@ export default function Experience() {
             <div className="h-[1px] w-8 sm:w-12 bg-gradient-to-l from-transparent to-[#C7A46A]" />
           </div>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#F4F0E8] font-heading tracking-tight mb-3">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#F4F0E8] font-heading tracking-tight">
             EXPERIENCE & LEADERSHIP
           </h2>
-
-          <p className="text-sm sm:text-base text-[#A7A198] max-w-2xl mx-auto font-sans leading-relaxed">
-            My journey across startups, leadership roles, and innovation initiatives.
-          </p>
         </motion.div>
 
         {/* CONTAINER 1: My Startups */}
