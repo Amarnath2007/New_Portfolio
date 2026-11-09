@@ -7,6 +7,7 @@ import { Menu, X, Mail, Github, Linkedin, Instagram } from "lucide-react";
 const navLinks = [
   { label: "Home", href: "#home" },
   { label: "Skills", href: "#skills" },
+  { label: "Experience", href: "#experience" },
   { label: "Achievements", href: "#achievements" },
   { label: "Certifications", href: "#certifications" },
   { label: "Projects", href: "#projects" },
@@ -21,8 +22,8 @@ export default function Navbar() {
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 30);
-      const sections = ["home", "skills", "achievements", "certifications", "projects", "about"];
-      for (const sec of sections.reverse()) {
+      const sections = ["home", "skills", "experience", "achievements", "certifications", "projects", "about"];
+      for (const sec of [...sections].reverse()) {
         const el = document.getElementById(sec);
         if (el && window.scrollY >= el.offsetTop - 130) {
           setActiveSection(sec);

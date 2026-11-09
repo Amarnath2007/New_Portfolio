@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Skills from "@/components/Skills";
+import Experience from "@/components/Experience";
 import Achievements from "@/components/Achievements";
 import Certifications from "@/components/Certifications";
 import Projects from "@/components/Projects";
@@ -56,6 +57,7 @@ export default function Home({ searchParams }: HomeProps) {
       <Navbar />
       <Hero resume={portfolio.resume} />
       <Skills data={portfolio.skills} />
+      <Experience />
       <Achievements data={portfolio.achievements} />
       <Certifications data={portfolio.certifications} />
       <Projects data={portfolio.projects} />

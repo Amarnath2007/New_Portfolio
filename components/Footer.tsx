@@ -6,6 +6,7 @@ import { ChevronUp, Mail, Github, Linkedin, Instagram } from "lucide-react";
 const navLinks = [
   "Home",
   "Skills",
+  "Experience",
   "Achievements",
   "Certifications",
   "Projects",
