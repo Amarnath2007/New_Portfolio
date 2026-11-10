@@ -125,12 +125,9 @@ export default function Projects({ data }: ProjectsProps) {
           <p className="text-[#C7A46A] text-xs sm:text-sm font-semibold tracking-[0.25em] uppercase mb-2.5 font-heading">
             — MY WORK —
           </p>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#F4F0E8] font-heading tracking-tight mb-3">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#F4F0E8] font-heading tracking-tight">
             Featured Projects
           </h2>
-          <p className="text-xs sm:text-sm text-[#A7A198] max-w-xl mx-auto font-sans leading-relaxed">
-            A curated collection of web applications, mobile tools, and systems I have engineered.
-          </p>
         </motion.div>
 
         {/* Horizontal Scrollable Carousel */}
