@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Code2, Sparkles, ChevronRight, ChevronLeft } from "lucide-react";
+import { Code2, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import SectionDivider from "./SectionDivider";
@@ -112,13 +112,6 @@ export default function Skills({ data }: SkillsProps) {
                 ))}
               </div>
             </div>
-
-            {/* Direction Indicator Chevrons on far right */}
-            <div className="hidden sm:flex items-center -space-x-1.5 pr-6 pl-2 shrink-0 z-20 bg-[#0D0D10] h-full text-[#C7A46A]">
-              <ChevronRight size={16} className="text-[#C7A46A]/30" />
-              <ChevronRight size={16} className="text-[#C7A46A]/60" />
-              <ChevronRight size={16} className="text-[#C7A46A]" />
-            </div>
           </div>
 
           {/* CONTAINER 2: AI Tools (Moving Right to Left) */}
@@ -139,13 +132,6 @@ export default function Skills({ data }: SkillsProps) {
 
               {/* Thin vertical separator */}
               <div className="w-[1px] h-8 sm:h-10 bg-[#2F2C27] shrink-0 ml-1 sm:ml-2" />
-
-              {/* Direction Indicator Chevrons indicating leftward motion */}
-              <div className="hidden sm:flex items-center -space-x-1.5 pl-2 text-[#C7A46A]">
-                <ChevronLeft size={16} className="text-[#C7A46A]" />
-                <ChevronLeft size={16} className="text-[#C7A46A]/60" />
-                <ChevronLeft size={16} className="text-[#C7A46A]/30" />
-              </div>
             </div>
 
             {/* RIGHT SIDE (Moving Ticker) */}
