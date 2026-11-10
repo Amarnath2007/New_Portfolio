@@ -109,7 +109,6 @@ export const ALL_SKILLS_CATEGORIES: SkillCategoryGroup[] = [
       { name: "Flutter", icon: "/icons/flutter.svg" },
       { name: "Kotlin", icon: "/icons/kotlin.svg" },
       { name: "Java", icon: "/icons/java.svg" },
-      { name: "Android", icon: "/icons/android.svg" },
     ],
   },
   {
