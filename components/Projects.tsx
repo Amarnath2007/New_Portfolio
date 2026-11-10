@@ -1,7 +1,8 @@
 "use client";
 
+import { useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Github, ExternalLink, Download, ArrowUpRight } from "lucide-react";
+import { Github, ExternalLink, Download, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import SectionDivider from "./SectionDivider";
 import { Project } from "@/lib/portfolio-data";
@@ -100,6 +101,15 @@ interface ProjectsProps {
 export default function Projects({ data }: ProjectsProps) {
   const items = data && data.length > 0 ? data : defaultProjects;
   const shouldReduceMotion = useReducedMotion();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      const { scrollLeft, clientWidth } = scrollRef.current;
+      const scrollTo = direction === "left" ? scrollLeft - clientWidth / 1.5 : scrollLeft + clientWidth / 1.5;
+      scrollRef.current.scrollTo({ left: scrollTo, behavior: "smooth" });
+    }
+  };
 
   return (
     <section id="projects" className="relative z-10 pt-16 md:pt-20 pb-0 scroll-mt-24 md:scroll-mt-28">
@@ -123,24 +133,29 @@ export default function Projects({ data }: ProjectsProps) {
           </p>
         </motion.div>
 
-        {/* Consistent 6-Project Interactive Grid with Equal Importance */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-7 items-stretch">
-          {items.map((p: any, i: number) => {
-            const primaryActionLink = p.demo || p.download || p.github;
+        {/* Horizontal Scrollable Carousel */}
+        <div className="relative group/carousel">
+          <div
+            ref={scrollRef}
+            className="flex gap-5 md:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-6 pt-2 px-1 items-stretch [&::-webkit-scrollbar]:hidden"
+            style={{ scrollbarWidth: "none" }}
+          >
+            {items.map((p: any, i: number) => {
+              const primaryActionLink = p.demo || p.download || p.github;
 
-            return (
-              <motion.div
-                key={p.id || p.title || i}
-                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.45,
-                  delay: shouldReduceMotion ? 0 : i * 0.08,
-                  ease: "easeOut",
-                }}
-                viewport={{ once: true, amount: 0.15 }}
-                className="group relative flex flex-col justify-between rounded-2xl md:rounded-3xl bg-[#141416]/95 border border-[#302D28] hover:border-[#C7A46A]/50 transition-all duration-300 hover:-translate-y-1.5 shadow-xl hover:shadow-[0_15px_35px_-10px_rgba(0,0,0,0.7),0_0_25px_rgba(199,164,106,0.12)] overflow-hidden h-full cursor-default"
-              >
+              return (
+                <motion.div
+                  key={p.id || p.title || i}
+                  initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.45,
+                    delay: shouldReduceMotion ? 0 : i * 0.08,
+                    ease: "easeOut",
+                  }}
+                  viewport={{ once: true, amount: 0.15 }}
+                  className="group relative flex-shrink-0 w-[85vw] max-w-[340px] sm:w-[360px] md:w-[380px] snap-start flex flex-col justify-between rounded-2xl md:rounded-3xl bg-[#141416]/95 border border-[#302D28] hover:border-[#C7A46A]/50 transition-all duration-300 hover:-translate-y-1.5 shadow-xl hover:shadow-[0_15px_35px_-10px_rgba(0,0,0,0.7),0_0_25px_rgba(199,164,106,0.12)] overflow-hidden cursor-default"
+                >
                 {/* Top Subtle Hover Accent Line */}
                 <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#C7A46A]/0 group-hover:via-[#C7A46A]/70 to-transparent transition-all duration-500 z-30" />
 
@@ -313,9 +328,29 @@ export default function Projects({ data }: ProjectsProps) {
             );
           })}
         </div>
-      </div>
 
-      <SectionDivider />
-    </section>
-  );
+        {/* Navigation Arrows */}
+        <button
+          type="button"
+          onClick={() => scroll("left")}
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 sm:-translate-x-5 w-11 h-11 rounded-full bg-[#202023] border border-[#302D28] text-[#A7A198] flex items-center justify-center backdrop-blur-md opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 z-30 hover:bg-[#C7A46A] hover:text-[#191919] hover:border-[#C7A46A] hidden sm:flex shadow-2xl cursor-pointer"
+          aria-label="Previous projects"
+        >
+          <ChevronLeft size={22} />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => scroll("right")}
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 sm:translate-x-5 w-11 h-11 rounded-full bg-[#202023] border border-[#302D28] text-[#A7A198] flex items-center justify-center backdrop-blur-md opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 z-30 hover:bg-[#C7A46A] hover:text-[#191919] hover:border-[#C7A46A] hidden sm:flex shadow-2xl cursor-pointer"
+          aria-label="Next projects"
+        >
+          <ChevronRight size={22} />
+        </button>
+      </div>
+    </div>
+
+    <SectionDivider />
+  </section>
+);
 }
