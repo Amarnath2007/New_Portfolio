@@ -33,8 +33,8 @@ const config: Config = {
       animation: {
         "spin-slow": "spin 8s linear infinite",
         float: "float 6s ease-in-out infinite",
-        "ticker-left": "ticker-left 100s linear infinite",
-        "ticker-right": "ticker-right 100s linear infinite",
+        "ticker-left": "ticker-left 180s linear infinite",
+        "ticker-right": "ticker-right 180s linear infinite",
       },
       keyframes: {
         float: {
