@@ -33,11 +33,21 @@ const config: Config = {
       animation: {
         "spin-slow": "spin 8s linear infinite",
         float: "float 6s ease-in-out infinite",
+        "ticker-left": "ticker-left 40s linear infinite",
+        "ticker-right": "ticker-right 40s linear infinite",
       },
       keyframes: {
         float: {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-12px)" },
+        },
+        "ticker-left": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        "ticker-right": {
+          "0%": { transform: "translateX(-50%)" },
+          "100%": { transform: "translateX(0)" },
         },
       },
     },
