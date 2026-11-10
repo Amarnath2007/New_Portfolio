@@ -47,13 +47,9 @@ export default function Skills({ data }: SkillsProps) {
             <div className="h-[1px] w-8 sm:w-14 bg-gradient-to-l from-transparent to-[#C7A46A]" />
           </div>
 
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold font-heading tracking-tight mb-3 text-transparent bg-clip-text bg-gradient-to-b from-[#FFFDF9] via-[#F4F0E8] to-[#D8BC8A]">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold font-heading tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-[#FFFDF9] via-[#F4F0E8] to-[#D8BC8A]">
             Skills
           </h2>
-
-          <p className="text-xs sm:text-sm md:text-base text-[#A7A198] max-w-2xl mx-auto font-sans leading-relaxed">
-            Technologies and tools I work with to build, ship, and scale products.
-          </p>
         </motion.div>
 
         {/* TWO Large, Wide, Premium Ticker Containers */}
