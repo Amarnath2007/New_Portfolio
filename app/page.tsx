@@ -9,6 +9,7 @@ import About from "@/components/About";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 import StarsBg from "@/components/StarsBg";
+import WelcomeScreen from "@/components/WelcomeScreen";
 import Link from "next/link";
 import { getPortfolioData } from "@/lib/portfolio-data";
 import { Eye, ShieldAlert, ArrowLeft } from "lucide-react";
@@ -28,6 +29,8 @@ export default function Home({ searchParams }: HomeProps) {
 
   return (
     <main className="relative min-h-screen">
+      <WelcomeScreen />
+
       {/* Floating Preview Banner when reviewing local draft */}
       {isPreviewMode && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 sm:px-6 py-2.5 rounded-full bg-[#151517]/95 border border-[#C7A46A]/60 backdrop-blur-xl shadow-[0_10px_35px_rgba(199,164,106,0.25)] text-xs sm:text-sm animate-pulse-subtle">
