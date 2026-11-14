@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
 import { ChevronUp } from "lucide-react";
 
@@ -107,14 +108,14 @@ export default function WelcomeScreen() {
         >
           <defs>
             <linearGradient id="topCurveGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#C7A46A" stop-opacity="0.4" />
-              <stop offset="60%" stop-color="#C7A46A" stop-opacity="0.1" />
-              <stop offset="100%" stop-color="#C7A46A" stop-opacity="0" />
+              <stop offset="0%" stopColor="#C7A46A" stopOpacity="0.4" />
+              <stop offset="60%" stopColor="#C7A46A" stopOpacity="0.1" />
+              <stop offset="100%" stopColor="#C7A46A" stopOpacity="0" />
             </linearGradient>
             <linearGradient id="topCurveGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#F4F0E8" stop-opacity="0.3" />
-              <stop offset="65%" stop-color="#C7A46A" stop-opacity="0.08" />
-              <stop offset="100%" stop-color="#C7A46A" stop-opacity="0" />
+              <stop offset="0%" stopColor="#F4F0E8" stopOpacity="0.3" />
+              <stop offset="65%" stopColor="#C7A46A" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="#C7A46A" stopOpacity="0" />
             </linearGradient>
           </defs>
           <path d="M-80 180 C120 180, 220 70, 480 -60" stroke="url(#topCurveGrad1)" strokeWidth="1.2" />
@@ -131,14 +132,14 @@ export default function WelcomeScreen() {
         >
           <defs>
             <linearGradient id="bottomCurveGrad1" x1="100%" y1="100%" x2="0%" y2="0%">
-              <stop offset="0%" stop-color="#C7A46A" stop-opacity="0.4" />
-              <stop offset="60%" stop-color="#C7A46A" stop-opacity="0.1" />
-              <stop offset="100%" stop-color="#C7A46A" stop-opacity="0" />
+              <stop offset="0%" stopColor="#C7A46A" stopOpacity="0.4" />
+              <stop offset="60%" stopColor="#C7A46A" stopOpacity="0.1" />
+              <stop offset="100%" stopColor="#C7A46A" stopOpacity="0" />
             </linearGradient>
             <linearGradient id="bottomCurveGrad2" x1="100%" y1="100%" x2="0%" y2="0%">
-              <stop offset="0%" stop-color="#F4F0E8" stop-opacity="0.3" />
-              <stop offset="65%" stop-color="#C7A46A" stop-opacity="0.08" />
-              <stop offset="100%" stop-color="#C7A46A" stop-opacity="0" />
+              <stop offset="0%" stopColor="#F4F0E8" stopOpacity="0.3" />
+              <stop offset="65%" stopColor="#C7A46A" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="#C7A46A" stopOpacity="0" />
             </linearGradient>
           </defs>
           <path d="M680 420 C480 420, 380 530, 120 660" stroke="url(#bottomCurveGrad1)" strokeWidth="1.2" />
@@ -175,84 +176,24 @@ export default function WelcomeScreen() {
 
       {/* 2. MAIN CONTENT (CENTERED HORIZONTALLY & VERTICALLY) */}
       <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center my-auto py-4">
-        {/* A. ELEGANT AB MONOGRAM LOGO WITH GOLD ARC */}
+        {/* A. ELEGANT AB MONOGRAM LOGO */}
         <motion.div
           initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
           className="mb-5 sm:mb-6"
         >
-          <div className="w-20 h-20 sm:w-24 sm:h-24 relative flex items-center justify-center">
-            <svg
-              viewBox="0 0 100 100"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-full h-full drop-shadow-[0_0_20px_rgba(199,164,106,0.2)]"
-            >
-              <defs>
-                {/* Metallic Gold Gradient for Monogram */}
-                <linearGradient id="abGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#FFFDF9" />
-                  <stop offset="35%" stopColor="#E5CFAB" />
-                  <stop offset="70%" stopColor="#C7A46A" />
-                  <stop offset="100%" stopColor="#9C793F" />
-                </linearGradient>
-
-                {/* Arc Gradient */}
-                <linearGradient id="abArcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#C7A46A" stopOpacity="0.95" />
-                  <stop offset="50%" stopColor="#FFFDF9" stopOpacity="1" />
-                  <stop offset="100%" stopColor="#C7A46A" stopOpacity="0.15" />
-                </linearGradient>
-
-                {/* Soft Radial Ambient Glow */}
-                <radialGradient id="abGlow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#C7A46A" stopOpacity="0.18" />
-                  <stop offset="100%" stopColor="#C7A46A" stopOpacity="0" />
-                </radialGradient>
-              </defs>
-
-              {/* Ambient Radial Core */}
-              <circle cx="50" cy="50" r="45" fill="url(#abGlow)" />
-
-              {/* Subtle gold outer orbital arc surrounding the monogram */}
-              <circle
-                cx="50"
-                cy="50"
-                r="44"
-                stroke="url(#abArcGrad)"
-                strokeWidth="1.3"
-                strokeDasharray="210 70"
-                strokeLinecap="round"
-                transform="rotate(-40 50 50)"
-              />
-              <circle
-                cx="50"
-                cy="50"
-                r="40"
-                stroke="#C7A46A"
-                strokeOpacity="0.2"
-                strokeWidth="0.8"
-              />
-
-              {/* Accent celestial orb on the arc */}
-              <circle cx="81" cy="21" r="1.6" fill="#F4F0E8" />
-              <circle cx="19" cy="79" r="1.2" fill="#C7A46A" opacity="0.6" />
-
-              {/* AB Monogram Typography */}
-              <text
-                x="50"
-                y="61"
-                textAnchor="middle"
-                fontFamily="'Manrope', sans-serif"
-                fontWeight="800"
-                fontSize="34"
-                letterSpacing="-0.06em"
-                fill="url(#abGoldGrad)"
-              >
-                AB
-              </text>
-            </svg>
+          <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 relative flex items-center justify-center">
+            {/* Ambient Gold Radial Core */}
+            <div className="absolute inset-0 rounded-full bg-[#C7A46A]/15 blur-xl pointer-events-none" />
+            <Image
+              src="/uploads/ab-logo.png"
+              alt="AB Monogram Logo"
+              width={112}
+              height={112}
+              priority
+              className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_25px_rgba(199,164,106,0.3)] select-none pointer-events-none"
+            />
           </div>
         </motion.div>
 
@@ -306,7 +247,7 @@ export default function WelcomeScreen() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: "easeOut", delay: 1.05 }}
         onClick={dismissWelcome}
-        className="relative z-20 w-full flex flex-col items-center justify-center cursor-pointer group select-none pb-7 sm:pb-9 pt-2"
+        className="relative z-20 w-full max-w-xs mx-auto flex flex-col items-center justify-center text-center cursor-pointer group select-none shrink-0 pt-2 pb-8 sm:pb-9 pb-[max(2rem,calc(env(safe-area-inset-bottom)+1rem))] px-4"
         role="button"
         tabIndex={0}
         aria-label="Swipe up to explore portfolio"
@@ -319,14 +260,14 @@ export default function WelcomeScreen() {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="flex flex-col items-center -space-y-1.5 text-[#C7A46A] transition-transform group-hover:scale-110"
+          className="flex flex-col items-center justify-center -space-y-1.5 text-[#C7A46A] transition-transform group-hover:scale-110"
         >
           <ChevronUp size={18} className="text-[#C7A46A] stroke-[2.5]" />
           <ChevronUp size={18} className="text-[#C7A46A]/60 stroke-[2]" />
         </motion.div>
 
         {/* Swipe up text */}
-        <span className="text-[10px] sm:text-xs font-semibold tracking-[0.25em] sm:tracking-[0.3em] uppercase text-[#C7A46A]/90 mt-2 font-heading transition-colors group-hover:text-[#F4F0E8]">
+        <span className="text-[10px] sm:text-xs font-semibold tracking-[0.25em] sm:tracking-[0.3em] uppercase text-[#C7A46A]/90 mt-2 font-heading transition-colors group-hover:text-[#F4F0E8] whitespace-nowrap text-center block">
           SWIPE UP TO EXPLORE
         </span>
       </motion.div>
